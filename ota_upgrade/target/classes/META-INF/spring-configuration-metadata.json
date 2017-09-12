@@ -1,0 +1,25 @@
+{
+  "hints": [],
+  "properties": [
+    {
+      "sourceType": "com.iot.ota_upgrade.mina.config.MinaSocketConfig",
+      "description": "绑定ip",
+      "name": "mina.ip",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "com.iot.ota_upgrade.mina.config.MinaSocketConfig",
+      "description": "监听端口",
+      "name": "mina.port",
+      "defaultValue": 0,
+      "type": "java.lang.Integer"
+    }
+  ],
+  "groups": [
+    {
+      "sourceType": "com.iot.ota_upgrade.mina.config.MinaSocketConfig",
+      "name": "mina",
+      "type": "com.iot.ota_upgrade.mina.config.MinaSocketConfig"
+    }
+  ]
+}

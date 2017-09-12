@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.iot.ota_web.mapper.UserTerminalCompetenceMapper">
+	
+	
+	<insert id="addUserCompetence" parameterType="com.alibaba.fastjson.JSONObject">
+     	insert into
+     		user_terminal_competence(userId,terminalId,competence_type)
+     	values
+     		(#{userId},#{terminal_id},#{competence_type})
+	</insert>
+	
+	<select id="getUserCompetence" parameterType="com.alibaba.fastjson.JSONObject" resultType="map">
+		SELECT 
+			id, userId, terminalId, competence_type
+		FROM 
+			user_terminal_competence
+		where
+			1=1
+			<if test='userId !=null'>
+				and userId=#{userId}
+			</if>
+			<if test='terminal_id !=null'>
+				and terminalId=#{terminal_id}
+			</if>
+	</select>
+	
+	<update id="updateUserCompetence" parameterType="com.alibaba.fastjson.JSONObject">
+		update
+			user_terminal_competence
+		set
+			competence_type=#{competence_type}
+		where
+			userId=#{userId} and terminalId=#{terminal_id}
+	</update>
+</mapper>

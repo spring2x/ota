@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.iot.ota_web.mapper.UserMapper">
+	
+	<resultMap type="user" id="userMap">
+		<id column="id" property="id"/>
+		<result column="name" property="name"/>
+		<result column="password" property="password"/>
+		<result column="phone" property="phone"/>
+		<result column="lastLogin" property="lastLogin"/>
+		<result column="user_token_id" property="userTokenId"/>
+	</resultMap>
+	
+	<insert id="addUser" parameterType="com.alibaba.fastjson.JSONObject">
+		<selectKey resultType="int" order="AFTER" keyProperty="type_id">
+          SELECT LAST_INSERT_ID()
+     	</selectKey>
+		insert into user(name,password,phone) values(#{name},#{password},#{phone})
+	</insert>
+	
+	<select id="getUsers" parameterType="com.alibaba.fastjson.JSONObject" resultMap="userMap">
+		select 
+			* 
+		from 
+			user
+		where
+			1=1
+		<if test='phone != null'>
+			and phone=#{phone}
+		</if>
+		<if test='password != null and password != "" and password != "null"'>
+			and password=#{password}
+		</if>
+	</select>
+	
+	<update id="updateUser" parameterType="user">
+		update
+			user
+		set
+			<if test="userTokenId != null">
+				user_token_id=#{userTokenId}
+			</if>
+		where
+			phone=#{phone}
+	</update>
+	
+	<update id="cleanUserToken" parameterType="com.alibaba.fastjson.JSONObject">
+		update
+			user
+		set
+			user_token_id=null
+		where
+			user_token_id not in(
+				select id from token
+			)
+			<if test="userId != null">
+				or id=#{userId}
+			</if>
+	</update>
+</mapper>

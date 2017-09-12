@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.iot.oauth.mapper.DeviceTokenMapper">
+	
+	<resultMap type="deviceToken" id="deviceTokenMap">
+		<id column="id" property="id"/>
+		<result column="mark" property="mark"/>
+		<result column="uuid" property="uuid"/>
+		<result column="type" property="type"/>
+		<result column="expire_time" property="expireTime"/>
+	</resultMap>
+	
+	<insert id="addDeviceToken" parameterType="deviceToken">
+		insert into 
+			device_token(mark,uuid,type,expire_time)
+		values
+			(#{mark},#{uuid},#{type},#{expireTime})
+	</insert>
+	
+	<select id="getDeviceTokens" parameterType="com.alibaba.fastjson.JSONObject" resultMap="deviceTokenMap">
+		select 
+			*
+		from
+			device_token
+		where
+			1=1
+			<if test='mark != null and mark != "" and mark !="null"'>
+				and mark = #{mark}
+			</if>
+			<if test='uuid != null and uuid != "" and uuid != "null"'>
+				and uuid = #{uuid}
+			</if>
+			<if test="type != null">
+				and type = #{type}
+			</if>
+	</select>
+	
+	<update id="updateDeviceToken" parameterType="com.alibaba.fastjson.JSONObject">
+		update
+			device_token
+		set
+			id = #{id}
+			<if test='uuid != null and uuid != "" and uuid != "null"'>
+				,uuid = #{uuid}
+			</if>
+			<if test='expire_time != null'>
+				,expire_time = #{expire_time}
+			</if>
+		where 
+			id = #{id}
+	</update>
+</mapper>

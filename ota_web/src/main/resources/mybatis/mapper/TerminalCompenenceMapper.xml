@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.iot.ota_web.mapper.TerminalCompenenceMapper">
+	
+	<resultMap type="terminalCompenence" id="terminalCompenenceMap">
+		<id column="id" property="id"/>
+		<result column="type" property="type"/>
+		<result column="name" property="name"/>
+		<result column="introduce" property="introduce"/>
+	</resultMap>
+	
+	
+	<select id="geTerminalCompenences" parameterType="map" resultMap="terminalCompenenceMap">
+		select
+			*
+		from
+			terminal_competence
+	</select>
+</mapper>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.iot.ota_web.mapper.PackageMapper">
+	
+	<resultMap type="package" id="packageMap">
+		<id column="id" property="id"/>
+		<result column="terminal_id" property="terminalId"/>
+		<result column="package_name" property="packageName"/>
+		<result column="introduce" property="introduce"/>
+	</resultMap>
+	
+	<insert id="addPackage" parameterType="map">
+		<selectKey resultType="int" order="AFTER" keyProperty="package_id">
+          SELECT LAST_INSERT_ID()
+     	</selectKey>
+		insert into package(terminal_id,package_name,introduce) values(#{terminal_id},#{package_name},#{introduce})
+	</insert>
+	
+	<select id="getPackages" parameterType="map" resultMap="packageMap">
+		select 
+			* 
+		from 
+			package 
+		where 
+			1=1
+			<if test='package_name != null and package_name != "" and package_name != "null"'>
+				and package_name=#{package_name}
+			</if>
+			
+			<if test='terminal_id != null'>
+				and terminal_id=#{terminal_id}
+			</if>
+			
+			<if test="package_id != null">
+				and id=#{package_id}
+			</if>
+	</select>
+	
+	<delete id="deletePackage" parameterType="com.alibaba.fastjson.JSONObject">
+		delete from
+			package
+		where
+			id=#{package_id}
+	</delete>
+	
+	<update id="updatePackage" parameterType="com.alibaba.fastjson.JSONObject">
+		update
+			package
+		set
+			id=#{package_id}
+			<if test='package_name != null and package_name != "" and package_name != "null"'>
+				,package_name=#{package_name}
+			</if>
+			<if test='introduce != null and introduce != "" and introduce != "null"'>
+				,introduce=#{introduce}
+			</if>
+		where
+			id=#{package_id}
+	</update>
+	
+</mapper>

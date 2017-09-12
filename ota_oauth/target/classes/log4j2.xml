@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    status : 这个用于设置log4j2自身内部的信息输出,可以不设置,当设置成trace时,会看到log4j2内部各种详细输出
+    monitorInterval : Log4j能够自动检测修改配置文件和重新配置本身, 设置间隔秒数。
+-->
+<Configuration status="WARN" monitorInterval="600">
+	<Properties>
+        <!-- 配置日志文件输出目录 -->
+        <Property name="LOG_HOME">../</Property>
+    </Properties>
+    
+    <Appenders>
+    	<!--这个输出控制台的配置-->
+        <Console name="Console" target="SYSTEM_OUT">
+            <!-- 控制台只输出level及以上级别的信息(onMatch),其他的直接拒绝(onMismatch) -->
+            <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
+            <!-- 输出日志的格式 -->
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %class{36} %L %M - %msg%xEx%n"/>
+        </Console>
+
+		<!--文件会打印出所有信息，这个log每次运行程序会自动清空，由append属性决定，这个也挺有用的，适合临时测试用 -->
+		<File name="file" fileName="../logs/ota_oauth_log/ota_oauth.log" append="true">
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %class{36} %L %M - %msg%xEx%n" />
+		</File>
+
+		<RollingFile name="RollingFileDebug" fileName="../logs/ota_oauth_log/debug.log" 
+					filePattern="../logs/ota_oauth_log/$${date:yyyy-MM}/debug-%d{yyyy-MM-dd}-%i.log">
+			<Filters>
+				<ThresholdFilter level="DEBUG" />
+				<ThresholdFilter level="INFO" onMatch="DENY" onMismatch="NEUTRAL" />
+			</Filters>
+			<PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="10MB" />
+			</Policies>
+		</RollingFile>
+
+		<RollingFile name="RollingFileInfo" fileName="../logs/ota_oauth_log/info.log" 
+					filePattern="../logs/ota_oauth_log/$${date:yyyy-MM}/info-%d{yyyy-MM-dd}-%i.log">
+			<Filters>
+				<ThresholdFilter level="INFO" />
+				<ThresholdFilter level="WARN" onMatch="DENY" onMismatch="NEUTRAL" />
+			</Filters>
+			<PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="1MB" />
+			</Policies>
+		</RollingFile>
+		
+		<RollingFile name="RollingFileWarn" fileName="../logs/ota_oauth_log/warn.log"
+                     filePattern="../logs/ota_oauth_log/$${date:yyyy-MM}/warn-%d{yyyy-MM-dd}-%i.log">
+            <Filters>
+                <ThresholdFilter level="WARN"/>
+                <ThresholdFilter level="ERROR" onMatch="DENY" onMismatch="NEUTRAL"/>
+            </Filters>
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="1MB"/>
+            </Policies>
+        </RollingFile>
+
+        <RollingFile name="RollingFileError" fileName="../logs/ota_oauth_log/error.log"
+                     filePattern="../logs/ota_oauth_log/$${date:yyyy-MM}/error-%d{yyyy-MM-dd}-%i.log">
+            <ThresholdFilter level="ERROR"/>
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="1MB"/>
+            </Policies>
+        </RollingFile>
+    </Appenders>
+    
+	<loggers>
+		<!--建立一个默认的root的logger-->
+		<root level="trace">
+			<appender-ref ref="Console"/>
+			<appender-ref ref="file"/>
+			<appender-ref ref="RollingFileInfo"/>
+			<appender-ref ref="RollingFileWarn"/>
+			<appender-ref ref="RollingFileError"/>
+			<appender-ref ref="RollingFileDebug"/>
+		</root> 
+	</loggers>
+</Configuration>

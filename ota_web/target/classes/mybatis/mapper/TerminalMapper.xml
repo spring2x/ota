@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.iot.ota_web.mapper.TerminalMapper">
+	
+	<resultMap type="terminal" id="terminalMap">
+		<id column="id" property="id"/>
+		<result column="type" property="type"/>
+		<result column="introduce" property="introduce"/>
+		<result column="business_platform_url" property="businessPlatformUrl"/>
+	</resultMap>
+	
+	
+	<insert id="addTerminal" parameterType="com.alibaba.fastjson.JSONObject">
+		<selectKey resultType="int" order="AFTER" keyProperty="terminal_id">
+          SELECT LAST_INSERT_ID()
+     	</selectKey>
+     	insert into
+     		terminal(type,introduce,business_platform_url)
+     	values
+     		(#{type},#{introduce},#{businessPlatformUrl})
+	</insert>
+	
+	<select id="getTerminalsByTypeOrUrl" parameterType="com.alibaba.fastjson.JSONObject" resultMap="terminalMap">
+		select
+			*
+		from
+			terminal
+		where
+			type=#{type} or business_platform_url = #{businessPlatformUrl}
+	</select>
+	
+	<select id="getTerminals" parameterType="map" resultType="map">
+		SELECT 
+			t.`id` terminalId ,t.`type` terminalType,t.`introduce` terminalIntroduce, u.`name` userName, u.`phone` userPhone, utc.`competence_type` competenceType
+			, t.business_platform_url platformUrl,u.id userId
+		FROM 
+			terminal t, user_terminal_competence utc, user u 
+		WHERE 
+			u.`id`=utc.`userId` AND utc.`terminalId` = t.`id`
+			<if test="competence_type != null">
+				and utc.`competence_type`=#{competence_type}
+			</if>
+			<if test='userId != null'>
+				and u.`id`=#{userId}
+			</if>
+			<if test="terminal_id != null">
+				and t.`id`=#{terminal_id}
+			</if>
+	</select>
+	
+	<delete id="deleteTerminal" parameterType="com.alibaba.fastjson.JSONObject">
+		delete from
+			terminal
+		where
+			id=#{terminal_id}
+	</delete>
+	
+	<update id="updateTerminal" parameterType="com.alibaba.fastjson.JSONObject">
+		update 
+			terminal
+		set
+			id=#{terminal_id}
+			<if test='type != null and type != "null" and type != ""' >
+				,type=#{type}
+			</if>
+			<if test='introduce != null and introduce != "" and introduce != "null"'>
+				,introduce=#{introduce}
+			</if>
+			<if test='businessPlatformUrl != null and businessPlatformUrl != "" and businessPlatformUrl != "null"'>
+				,business_platform_url=#{businessPlatformUrl}
+			</if>
+		where
+			id=#{terminal_id}
+	</update>
+</mapper>

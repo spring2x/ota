@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.iot.oauth.mapper.PackageFileMapper">
+	
+	<resultMap type="packageFile" id="packageFileMap">
+		<id column="id" property="id"/>
+		<result column="terminal_id" property="terminalId"/>
+		<result column="package_id" property="packageId"/>
+		<result column="package_version_id" property="packageVersionId"/>
+		<result column="create_time" property="createTime"/>
+		<result column="create_people_id" property="createPeopleId"/>
+		<result column="file_name" property="fileName"/>
+	</resultMap>
+	
+	<insert id="addPackageFile" parameterType="map">
+		insert into 
+			package_file(terminal_id,package_id,package_version_id,create_people_id,file_name) 
+		values
+			(#{terminal_id},#{package_id},#{package_version_id},#{userId},#{fileName})
+	</insert>
+	
+	<select id="getPackageFiles" parameterType="map" resultMap="packageFileMap">
+		select 
+			* 
+		from 
+			package_file 
+		where 
+			1=1
+			<if test='terminal_id != null'>
+				and terminal_id=#{terminal_id}
+			</if>
+			<if test='package_id != null'>
+				and package_id=#{package_id}
+			</if>
+			<if test='package_version_id != null'>
+				and package_version_id=#{package_version_id}
+			</if>
+	</select>
+	
+	<select id="getNewPackageFiles" parameterType="map" resultMap="packageFileMap">
+		select 
+			* 
+		from 
+			package_file 
+		where 
+			create_time in(
+				SELECT MAX(create_time) 
+				FROM 
+				package_file 
+				where 
+				terminal_id=#{terminal_id} and package_id=#{package_id})
+	</select>
+	
+	<delete id="deletePackageFile" parameterType="com.alibaba.fastjson.JSONObject">
+		delete from 
+			package_file
+	</delete>
+</mapper>

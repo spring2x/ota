@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.iot.ota_upgrade.mapper.ReqStatisticMapper">
+	
+	<resultMap type="reqStatistic" id="reqStatisticMap">
+		<id column="id" property="id"/>
+		<result column="host" property="host"/>
+		<result column="port" property="port"/>
+		<result column="num" property="num"/>
+		<result column="update_time" property="updateTime"/>
+	</resultMap>
+	
+	<select id="getStatisticData" parameterType="com.alibaba.fastjson.JSONObject" resultMap="reqStatisticMap">
+		select * from req_statistic where host=#{host} and port=#{port} ORDER BY update_time DESC
+	</select>
+	
+	<insert id="addStatisticData" parameterType="com.alibaba.fastjson.JSONObject">
+		insert into 
+			req_statistic(host,port,num,update_time)
+		values
+			(#{host},#{port},#{num},NOW())
+	</insert>
+	
+	<update id="updateStatisticData" parameterType="com.alibaba.fastjson.JSONObject">
+		update
+			req_statistic
+		set
+			num = #{num},update_time=NOW()
+		where 
+			host = #{host} and port=#{port} and update_time=#{update_time}
+	</update>
+</mapper>
