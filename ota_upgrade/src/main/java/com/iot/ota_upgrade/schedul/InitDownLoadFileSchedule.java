@@ -2,9 +2,7 @@ package com.iot.ota_upgrade.schedul;
 
 import java.io.File;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,10 +39,6 @@ public class InitDownLoadFileSchedule {
 					logger.error(initResult.get("message"));
 				}
 			}
-		}
-		
-		for(Entry<String, Map<Integer, String>> entry : DeviceUpReqService.fileValideCodeMap.entrySet()){
-			fileMarkSet.remove(entry.getValue());
 		}
 	}
 	
