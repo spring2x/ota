@@ -14,7 +14,7 @@ public class RequestUtil {
 		Enumeration<String> parameterNames = request.getParameterNames();
 		while (parameterNames.hasMoreElements()) {
 			String paramName = parameterNames.nextElement();
-			paramMap.put(paramName, new String(request.getParameter(paramName).getBytes("ISO-8859-1"), "UTF-8"));
+			paramMap.put(paramName, request.getParameter(paramName));
 		}
 
 		return paramMap;
