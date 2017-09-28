@@ -79,6 +79,7 @@ public class DeviceUpReqService extends BasicDeviceActionService {
 			}
 			
 			if(!fileValideCodeMap.containsKey(fileMark)){
+				InitDownLoadFileSchedule.fileMarkSet.remove(fileMark);
 				logger.error("request file can not be init  " + fileMark);
 				throw new Exception("request file can not be init  " + fileMark);
 			}

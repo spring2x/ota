@@ -1,11 +1,10 @@
 package com.iot.ota_upgrade.schedul;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.mina.util.ConcurrentHashSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -19,7 +18,7 @@ public class InitDownLoadFileSchedule {
 	
 	private Logger logger = LogManager.getLogger(InitDownLoadFileSchedule.class);
 
-	public static Set<String> fileMarkSet = new HashSet<>();
+	public static ConcurrentHashSet<String> fileMarkSet = new ConcurrentHashSet<>();
 	
 	@Autowired
 	InitPackageFileService initPackageFileService;
