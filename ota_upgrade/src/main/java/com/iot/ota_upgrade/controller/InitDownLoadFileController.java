@@ -42,7 +42,11 @@ public class InitDownLoadFileController {
 				valideMap.put(3, (String) valideCodeEntry.getValue());
 			}
 		}
-		DeviceUpReqService.fileValideCodeMap.put(fileMark, valideMap);
+		
+		synchronized (DeviceUpReqService.fileValideCodeMap) {
+			DeviceUpReqService.fileValideCodeMap.put(fileMark, valideMap);
+			DeviceUpReqService.fileValideCodeMap.notifyAll();
+		}
 		
 		Map<String, MultipartFile> fileMaps = multipartHttpServletRequest.getFileMap();
 		for (Entry<String, MultipartFile> fileMap : fileMaps.entrySet()) {
