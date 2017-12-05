@@ -67,7 +67,7 @@ public class DeviceUpgradeHandler extends IoHandlerAdapter implements Applicatio
 				result.put(ExceptionMessageConstant.ERR_MESSAGE_ID_MARK, basicMessage.messageType);
 				result.put(ExceptionMessageConstant.ERR_MESSAGE_CODE_MARK, ExceptionMessageConstant.SERVER_ERR);
 				session.write(result);
-				logger.error(e.getMessage());
+				e.printStackTrace();
 			}
 		}else {
 			result.clear();
