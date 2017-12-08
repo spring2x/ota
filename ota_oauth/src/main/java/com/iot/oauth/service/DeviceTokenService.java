@@ -70,10 +70,10 @@ public class DeviceTokenService {
 		try {
 			List<DeviceToken> deviceTokens = deviceTokenMapper.getDeviceTokens(_params);
 			if (deviceTokens != null && !deviceTokens.isEmpty()) {
-				result.put("code", "0001");
-				result.put("message", "已经申请过token");
-				result.put("token", deviceTokens.get(0).getUuid());
-				result.put("expire_time", deviceTokens.get(0).getExpireTime());
+				String org_token = deviceTokens.get(0).getUuid();
+				JSONObject param = new JSONObject();
+				param.put("org_token", org_token);
+				updateDeviceToken(param, result);
 				return;
 			}
 			deviceTokenMapper.addDeviceToken(deviceToken);

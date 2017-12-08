@@ -76,8 +76,10 @@ public class BusinessPlatformService {
 		
 		List<Map<String, Object>> platformtoken = platformTokenMapper.getPlatformToken(params);
 		if (platformtoken != null && !platformtoken.isEmpty()) {
-			result.put("code", "0001");
-			result.put("message", "该业务平台已经认证");
+			String orgToken = (String) platformtoken.get(0).get("token");
+			JSONObject param = new JSONObject();
+			param.put("org_token", orgToken);
+			updatePlatformToken(param, result);
 			return;
 		}
 		
