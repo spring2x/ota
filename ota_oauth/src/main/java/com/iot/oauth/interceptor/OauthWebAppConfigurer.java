@@ -15,7 +15,7 @@ public class OauthWebAppConfigurer extends WebMvcConfigurerAdapter {
 
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
-		registry.addInterceptor(new DeviceInterceptor(tokenMapper)).addPathPatterns("/device/**");
+		registry.addInterceptor(new DeviceInterceptor(tokenMapper)).addPathPatterns("/ong/device");
 		super.addInterceptors(registry);
 	}
 }

@@ -62,7 +62,7 @@ public class DeviceInterceptor implements HandlerInterceptor {
 			PrintWriter writer = response.getWriter();
 			response.setStatus(401);
 			result.put("code", "0001");
-			result.put("message", "token已过期");
+			result.put("message", "业务平台授权已过期，请重新获取权限");
 			writer.write(result.toString());
 			writer.flush();
 			writer.close();
