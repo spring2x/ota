@@ -16,6 +16,7 @@ import com.iot.ota_upgrade.constant.DeviceUpReqConstant;
 import com.iot.ota_upgrade.constant.ExceptionMessageConstant;
 import com.iot.ota_upgrade.message.BasicMessage;
 import com.iot.ota_upgrade.mina.service.interf.DeviceActionServiceInterf;
+import com.iot.ota_upgrade.util.ExceptionUtil;
 import com.iot.ota_upgrade.util.RequestStatisticsUtil;
 
 
@@ -62,12 +63,12 @@ public class DeviceUpgradeHandler extends IoHandlerAdapter implements Applicatio
 					session.close(false);
 				}
 			} catch (Exception e) {
+				ExceptionUtil.printExceptionToLog(logger, e);
 				result.clear();
 				result.put(ExceptionMessageConstant.MESSAGE_TYPE_KEY, ExceptionMessageConstant.MESSAGE_TYPE);
 				result.put(ExceptionMessageConstant.ERR_MESSAGE_ID_MARK, basicMessage.messageType);
 				result.put(ExceptionMessageConstant.ERR_MESSAGE_CODE_MARK, ExceptionMessageConstant.SERVER_ERR);
 				session.write(result);
-				e.printStackTrace();
 			}
 		}else {
 			result.clear();

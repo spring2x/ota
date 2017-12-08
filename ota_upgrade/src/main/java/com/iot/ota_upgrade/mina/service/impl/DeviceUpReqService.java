@@ -77,7 +77,7 @@ public class DeviceUpReqService extends BasicDeviceActionService {
 
 		if (!fileValideCodeMap.containsKey(fileMark)) {
 			synchronized (fileValideCodeMap) {
-				int waitTime = upgradeProperty.getFileInitTestNum() * upgradeProperty.getFileInitTestInterval();
+				//int waitTime = upgradeProperty.getFileInitTestNum() * upgradeProperty.getFileInitTestInterval();
 				if (!fileValideCodeMap.containsKey(fileMark) && !fileMarkSet.contains(fileMark)) {
 					JSONObject body = new JSONObject();
 					body.put("terminal", deviceMark);
@@ -89,10 +89,10 @@ public class DeviceUpReqService extends BasicDeviceActionService {
 						logger.error(initResult.get("message"));
 					} else {
 						fileMarkSet.add(fileMark);
-						fileValideCodeMap.wait(waitTime);
+						fileValideCodeMap.wait();
 					}
 				} else if (!fileValideCodeMap.containsKey(fileMark) && fileMarkSet.contains(fileMark)) {
-					fileValideCodeMap.wait(waitTime);
+					fileValideCodeMap.wait();
 				}
 			}
 		}

@@ -7,6 +7,8 @@ import java.util.Map.Entry;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,11 +17,14 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.alibaba.fastjson.JSONObject;
 import com.iot.ota_upgrade.mina.service.impl.DeviceUpReqService;
+import com.iot.ota_upgrade.util.ExceptionUtil;
 import com.iot.ota_upgrade.util.FileUtil;
 
 @RestController
 @RequestMapping("/downloadFile")
 public class InitDownLoadFileController {
+	
+	private static Logger logger = LogManager.getLogger(InitDownLoadFileController.class);
 	
 	@RequestMapping(value="", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
 	public void initDownLoadFile(HttpServletRequest request, HttpServletResponse response){
@@ -43,19 +48,21 @@ public class InitDownLoadFileController {
 			}
 		}
 		
-		synchronized (DeviceUpReqService.fileValideCodeMap) {
-			DeviceUpReqService.fileValideCodeMap.put(fileMark, valideMap);
-			DeviceUpReqService.fileValideCodeMap.notifyAll();
-		}
-		
 		Map<String, MultipartFile> fileMaps = multipartHttpServletRequest.getFileMap();
 		for (Entry<String, MultipartFile> fileMap : fileMaps.entrySet()) {
 			MultipartFile file = fileMap.getValue();
 			try {
 				FileUtil.initDownLoadFile(fileMark, file);
 			} catch (Exception e) {
-				e.printStackTrace();
+				ExceptionUtil.printExceptionToLog(logger, e);
 			}
 		}
+		
+		synchronized (DeviceUpReqService.fileValideCodeMap) {
+			DeviceUpReqService.fileValideCodeMap.put(fileMark, valideMap);
+			logger.info("###########file inited notifyAll");
+			DeviceUpReqService.fileValideCodeMap.notifyAll();
+		}
+		
 	}
 }
