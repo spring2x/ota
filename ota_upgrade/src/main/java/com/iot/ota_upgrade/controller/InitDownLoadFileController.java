@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.alibaba.fastjson.JSONObject;
-import com.iot.ota_upgrade.mina.service.impl.DeviceUpReqService;
+import com.iot.ota_upgrade.util.AsyncUtil;
 import com.iot.ota_upgrade.util.ExceptionUtil;
 import com.iot.ota_upgrade.util.FileUtil;
 
@@ -25,6 +26,9 @@ import com.iot.ota_upgrade.util.FileUtil;
 public class InitDownLoadFileController {
 	
 	private static Logger logger = LogManager.getLogger(InitDownLoadFileController.class);
+	
+	@Autowired
+	private AsyncUtil asyncUtil;
 	
 	@RequestMapping(value="", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
 	public void initDownLoadFile(HttpServletRequest request, HttpServletResponse response){
@@ -58,11 +62,7 @@ public class InitDownLoadFileController {
 			}
 		}
 		
-		synchronized (DeviceUpReqService.fileValideCodeMap) {
-			DeviceUpReqService.fileValideCodeMap.put(fileMark, valideMap);
-			logger.info("###########file inited notifyAll");
-			DeviceUpReqService.fileValideCodeMap.notifyAll();
-		}
-		
+		//异步调用，避免造成死锁
+		asyncUtil.initValideCodeMap(fileMark, valideMap);
 	}
 }

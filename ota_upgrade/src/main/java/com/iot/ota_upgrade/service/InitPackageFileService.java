@@ -22,8 +22,8 @@ public class InitPackageFileService {
 	
 	@Autowired UpgradeProperty upgradeProperty;
 	
-	@HystrixCommand(fallbackMethod="fallback", commandKey="initDownLoadFile", groupKey="downLoadFileGroup", threadPoolKey="initDownLoadFileThread"/*,
-			commandProperties={@HystrixProperty(name="execution.isolation.thread.timeoutInMilliseconds",value="120000")}*/)
+	@HystrixCommand(fallbackMethod="fallback", commandKey="initDownLoadFile", groupKey="downLoadFileGroup", threadPoolKey="initDownLoadFileThread",
+			commandProperties={@HystrixProperty(name="execution.isolation.thread.timeoutInMilliseconds",value="60000")})
 	public JSONObject initDownLoadFile(JSONObject body){
 		body.put("responseUrl", "http://" + upgradeProperty.getServerIp() + ":" + upgradeProperty.getServerPort() + "/downloadFile");
 		ResponseEntity<String> responseEntity = template.postForEntity(upgradeProperty.getPackageFileDownloadPath(), 

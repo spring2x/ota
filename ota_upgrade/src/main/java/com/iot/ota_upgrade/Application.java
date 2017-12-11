@@ -9,6 +9,7 @@ import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
 
@@ -17,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 @EnableScheduling
 @EnableCircuitBreaker
+@EnableAsync
 @ImportResource(locations={"classpath:config/application-mina.xml"})
 @MapperScan("com.iot.ota_upgrade.mapper")
 public class Application {
