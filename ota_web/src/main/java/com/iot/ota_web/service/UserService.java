@@ -60,7 +60,20 @@ public class UserService implements ApplicationContextAware{
 		CommonService.registerVerifyMap.remove(phone);
 		
 		try {
-			String md5Password = MD5Util.EncryptionStr(params.getString("password"), MD5Util.MD5);
+			String password = params.getString("password");
+			if (!password.matches(".*\\d+.*") || !password.matches(".*[a-zA-Z]+.*")/* || !password.matches(".*[~!@#$%^&*()_+|<>,.?/:;'\\[\\]{}\"]+.*")*/) {
+				result.put("code", "0001");
+				result.put("message", "密码必须包含数字和字母");
+				return;
+			}
+			
+			if (password.length() <8) {
+				result.put("code", "0001");
+				result.put("message", "密码长度必须大于等于8位");
+				return;
+			}
+			
+			String md5Password = MD5Util.EncryptionStr(password, MD5Util.MD5);
 			params.put("password", md5Password);
 			List<User> users = userMapper.getUsers(params);
 			
