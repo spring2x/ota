@@ -6,4 +6,5 @@ Implementation-Vendor-Id: com.iot
 Build-Jdk: 1.7.0_79
 Built-By: liqiang
 Created-By: Maven Integration for Eclipse
+Implementation-URL: http://maven.apache.org
 
