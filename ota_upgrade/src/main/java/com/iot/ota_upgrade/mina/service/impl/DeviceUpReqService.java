@@ -15,7 +15,6 @@ import com.iot.ota_upgrade.constant.DeviceUpReqConstant;
 import com.iot.ota_upgrade.constant.ExceptionMessageConstant;
 import com.iot.ota_upgrade.message.BasicMessage;
 import com.iot.ota_upgrade.message.DeviceUpReqMessage;
-import com.iot.ota_upgrade.schedul.InitDownLoadFileSchedule;
 import com.iot.ota_upgrade.service.DeviceTokenService;
 import com.iot.ota_upgrade.service.InitPackageFileService;
 import com.iot.ota_upgrade.util.ByteUtil;
@@ -98,7 +97,7 @@ public class DeviceUpReqService extends BasicDeviceActionService {
 		}
 
 		if (!fileValideCodeMap.containsKey(fileMark)) {
-			InitDownLoadFileSchedule.fileMarkSet.remove(fileMark);
+			//InitDownLoadFileSchedule.fileMarkSet.remove(fileMark);
 			logger.error("request file can not be init  " + fileMark);
 			throw new Exception("request file can not be init  " + fileMark);
 		}
