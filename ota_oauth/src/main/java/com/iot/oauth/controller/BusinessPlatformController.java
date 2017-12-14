@@ -18,7 +18,7 @@ import com.iot.oauth.service.BusinessPlatformService;
  *
  */
 @Controller
-@RequestMapping("/ong/platform")
+@RequestMapping("/platform")
 public class BusinessPlatformController extends BasicController {
 	
 	@Autowired

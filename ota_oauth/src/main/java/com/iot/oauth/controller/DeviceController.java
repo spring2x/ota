@@ -25,7 +25,7 @@ import com.iot.oauth.util.RequestUtil;
  *
  */
 @Controller
-@RequestMapping("/ong/device")
+@RequestMapping("/device")
 public class DeviceController extends BasicController{
 	
 	Logger log = LogManager.getLogger(DeviceController.class.getName());
