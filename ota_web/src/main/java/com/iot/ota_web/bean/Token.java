@@ -2,10 +2,18 @@ package com.iot.ota_web.bean;
 
 import java.sql.Timestamp;
 
+import javax.validation.constraints.Size;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+import com.iot.ota_web.valid.group.ValidGroup3;
+
 public class Token {
 	//token id
 	public Integer id;
 	//token 值
+	@NotBlank(message="token不能为空", groups={ValidGroup3.class})
+	@Size(min=32, max=32, message="token长度不合格", groups={ValidGroup3.class})
 	public String uuid;
 	//token 过期时间
 	public Timestamp expireTime;

@@ -21,6 +21,7 @@ import com.iot.ota_web.bean.User;
 import com.iot.ota_web.bean.UserProperty;
 import com.iot.ota_web.mapper.TokenMapper;
 import com.iot.ota_web.mapper.UserMapper;
+import com.iot.ota_web.util.ExceptionUtil;
 import com.iot.ota_web.util.MD5Util;
 
 @Service
@@ -46,8 +47,8 @@ public class UserService implements ApplicationContextAware{
 	 * @throws Exception
 	 */
 	@Transactional(rollbackFor = Exception.class)
-	public void userRegistProcess(JSONObject params, JSONObject result) throws Exception{
-		String phone = params.getString("phone");
+	public void userRegistProcess(User user, JSONObject result) throws Exception{
+		/*String phone = params.getString("phone");
 		String verifyCode = params.getString("code");
 		
 		//验证码校验
@@ -61,7 +62,7 @@ public class UserService implements ApplicationContextAware{
 		
 		try {
 			String password = params.getString("password");
-			if (!password.matches(".*\\d+.*") || !password.matches(".*[a-zA-Z]+.*")/* || !password.matches(".*[~!@#$%^&*()_+|<>,.?/:;'\\[\\]{}\"]+.*")*/) {
+			if (!password.matches(".*\\d+.*") || !password.matches(".*[a-zA-Z]+.*") || !password.matches(".*[~!@#$%^&*()_+|<>,.?/:;'\\[\\]{}\"]+.*")) {
 				result.put("code", "0001");
 				result.put("message", "密码必须包含数字和字母");
 				return;
@@ -88,6 +89,30 @@ public class UserService implements ApplicationContextAware{
 		} catch (Exception e) {
 			logger.error("add user err!!!   " + e.getMessage());
 			throw e;
+		}*/
+		if (!user.getPassword().equals(user.getRepeatPassword())) {
+			result.put("code", "0001");
+			result.put("message", "两次输入的密码不一致");
+			return;
+		}
+		
+		String md5Password = MD5Util.EncryptionStr(user.getPassword(), MD5Util.MD5);
+		user.setPassword(md5Password);
+		
+		try {
+			List<User> users = userMapper.existUser(user);
+			
+			if (users != null && !users.isEmpty()) {
+				result.put("code", "0001");
+				result.put("message", "该用户已经注册");
+				return;
+			}
+			
+			userMapper.addUser(user);
+			result.put("userId", user.getUserId());
+		} catch (Exception e) {
+			ExceptionUtil.printExceptionToLog(logger, e);
+			throw e;
 		}
 	}
 	
@@ -98,25 +123,23 @@ public class UserService implements ApplicationContextAware{
 	 * @return
 	 * @throws Exception
 	 */
-	public void userLoginProcess(JSONObject params, JSONObject result) throws Exception{
-		int loginType = params.getInteger("login_type");
+	public void userLoginProcess(User user, JSONObject result) throws Exception{
+		int loginType = user.getLogin_type() == null ? 0 : user.getLogin_type();
 		UserLoginServiceInterf userLoginService = null;
 		switch (loginType) {
 		case 0:
 			//采用密码的方式登录
 			userLoginService = (UserLoginServiceInterf) applicationContext.getBean("userPasswordLoginService");
-			params.put("token_type", 0);
 			break;
 		case 1:
 			//采用验证码的方式登录
 			userLoginService = (UserLoginServiceInterf) applicationContext.getBean("userVeryfyCodeLoginService");
-			params.put("token_type", 0);
 		}
 		
 		try {
-			userLoginService.userLogin(params, result);
+			userLoginService.userLogin(user, result);
 		} catch (Exception e) {
-			logger.error("user login err!!!" + e.getMessage());
+			ExceptionUtil.printExceptionToLog(logger, e);
 			throw e;
 		}
 	}
@@ -133,7 +156,7 @@ public class UserService implements ApplicationContextAware{
 		try {
 			tokenMapper.refreshToken(params);
 		} catch (Exception e) {
-			logger.error("refresh token err!!!   " + e.getMessage());
+			ExceptionUtil.printExceptionToLog(logger, e);
 			throw e;
 		}
 	}
@@ -142,8 +165,9 @@ public class UserService implements ApplicationContextAware{
 	public void userLogoutProcess(JSONObject params, JSONObject result) throws Exception{
 		try {
 			userMapper.cleanUserToken(params);
+			tokenMapper.deleteUserToken(params);
 		} catch (Exception e) {
-			logger.error("user logout err!!!" + e.getMessage());
+			ExceptionUtil.printExceptionToLog(logger, e);
 			throw e;
 		}
 	}
@@ -160,19 +184,18 @@ public class UserService implements ApplicationContextAware{
 			JSONArray userArray = new JSONArray();
 			usersJson.put("userArray", userArray);
 			for(User user : users){
-				if (params.containsKey("cur_userId") && user.getId() == params.getInteger("cur_userId")) {
+				if (user.getUserId() == params.getInteger("cur_userId")) {
 					continue;
 				}
 				JSONObject _userJson = new JSONObject();
-				_userJson.put("id", user.getId());
+				_userJson.put("id", user.getUserId());
 				_userJson.put("uname", user.getName());
-				_userJson.put("phone", user.getPhone());
 				_userJson.put("last_login", user.getLastLogin());
 				_userJson.put("tokenId", user.getUserTokenId());
 				userArray.add(_userJson);
 			}
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			ExceptionUtil.printExceptionToLog(logger, e);
 			throw e;
 		}
 	}

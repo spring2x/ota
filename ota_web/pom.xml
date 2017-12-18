@@ -111,6 +111,24 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpmime</artifactId>
         </dependency>
+        <!-- 文件下载配置结束 -->
+        
+        <!-- 请求参数校验开始 -->
+        <dependency>
+		    <groupId>org.hibernate</groupId>
+		    <artifactId>hibernate-validator</artifactId>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.jboss.logging</groupId>
+		    <artifactId>jboss-logging</artifactId>
+		</dependency>
+		
+		<dependency>
+		    <groupId>javax.validation</groupId>
+		    <artifactId>validation-api</artifactId>
+		</dependency>
+		<!-- 请求参数校验结束 -->
 	</dependencies>
 
 	<dependencyManagement>

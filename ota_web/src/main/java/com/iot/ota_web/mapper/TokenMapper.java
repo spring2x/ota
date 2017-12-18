@@ -21,6 +21,12 @@ public interface TokenMapper {
 	void deleteToken(JSONObject params);
 	
 	/**
+	 * 根据用户的id,删除用户的token
+	 * @param params
+	 */
+	void deleteUserToken(JSONObject params);
+	
+	/**
 	 * 刷新token
 	 * @param params
 	 */

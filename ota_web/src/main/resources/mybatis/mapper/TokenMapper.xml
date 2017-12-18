@@ -16,6 +16,13 @@
 		insert into token(uuid,expireTime,type) values(#{uuid},#{expireTime},#{type})
 	</insert>
 	
+	<delete id="deleteUserToken" parameterType="com.alibaba.fastjson.JSONObject">
+		delete from
+			token
+		where
+			uuid=#{token}
+	</delete>
+	
 	<delete id="deleteToken" parameterType="com.alibaba.fastjson.JSONObject">
 		delete from
 			token

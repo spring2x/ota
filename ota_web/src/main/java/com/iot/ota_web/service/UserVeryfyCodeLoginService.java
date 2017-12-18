@@ -1,14 +1,11 @@
 package com.iot.ota_web.service;
 
-import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.iot.ota_web.bean.Token;
 import com.iot.ota_web.bean.User;
 import com.iot.ota_web.bean.UserProperty;
 import com.iot.ota_web.mapper.UserMapper;
@@ -26,9 +23,9 @@ public class UserVeryfyCodeLoginService implements UserLoginServiceInterf {
 	Logger logger = LogManager.getLogger(UserVeryfyCodeLoginService.class.getName());
 	
 	@Override
-	public void userLogin(JSONObject params, JSONObject result) throws Exception {
+	public void userLogin(User user, JSONObject result) throws Exception {
 		
-		String verifyCode = params.getString("code");
+		/*String verifyCode = params.getString("code");
 		String phone = params.getString("phone");
 		//验证码校验
 		if (!CommonService.registerVerifyMap.containsKey(phone) || !CommonService.registerVerifyMap.get(phone).equals(verifyCode)) {
@@ -55,7 +52,7 @@ public class UserVeryfyCodeLoginService implements UserLoginServiceInterf {
 		} catch (Exception e) {
 			logger.error("user login by verify cod err!!!" + e.getMessage());
 			throw e;
-		}
+		}*/
 	}
 
 }

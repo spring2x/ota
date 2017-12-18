@@ -3,19 +3,18 @@
 <mapper namespace="com.iot.ota_web.mapper.UserMapper">
 	
 	<resultMap type="user" id="userMap">
-		<id column="id" property="id"/>
+		<id column="id" property="userId"/>
 		<result column="name" property="name"/>
 		<result column="password" property="password"/>
-		<result column="phone" property="phone"/>
 		<result column="lastLogin" property="lastLogin"/>
 		<result column="user_token_id" property="userTokenId"/>
 	</resultMap>
 	
-	<insert id="addUser" parameterType="com.alibaba.fastjson.JSONObject">
-		<selectKey resultType="int" order="AFTER" keyProperty="type_id">
+	<insert id="addUser" parameterType="user">
+		<selectKey resultType="int" order="AFTER" keyProperty="userId">
           SELECT LAST_INSERT_ID()
      	</selectKey>
-		insert into user(name,password,phone) values(#{name},#{password},#{phone})
+		insert into user(name,password) values(#{name},#{password})
 	</insert>
 	
 	<select id="getUsers" parameterType="com.alibaba.fastjson.JSONObject" resultMap="userMap">
@@ -23,14 +22,24 @@
 			* 
 		from 
 			user
+	</select>
+	
+	<select id="existUser" parameterType="user" resultMap="userMap">
+		select 
+			* 
+		from 
+			user
 		where
-			1=1
-		<if test='phone != null'>
-			and phone=#{phone}
-		</if>
-		<if test='password != null and password != "" and password != "null"'>
-			and password=#{password}
-		</if>
+			name=#{name}
+	</select>
+	
+	<select id="checkUser" parameterType="user" resultMap="userMap">
+		select 
+			* 
+		from 
+			user
+		where
+			name=#{name} and password=#{password}
 	</select>
 	
 	<update id="updateUser" parameterType="user">
@@ -41,7 +50,7 @@
 				user_token_id=#{userTokenId}
 			</if>
 		where
-			phone=#{phone}
+			name=#{name}
 	</update>
 	
 	<update id="cleanUserToken" parameterType="com.alibaba.fastjson.JSONObject">
@@ -50,11 +59,6 @@
 		set
 			user_token_id=null
 		where
-			user_token_id not in(
-				select id from token
-			)
-			<if test="userId != null">
-				or id=#{userId}
-			</if>
+			user_token_id=(select id from token where uuid=#{token})
 	</update>
 </mapper>

@@ -12,7 +12,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.iot.ota_web.bean.Token;
 import com.iot.ota_web.bean.User;
 import com.iot.ota_web.bean.UserProperty;
+import com.iot.ota_web.mapper.TokenMapper;
 import com.iot.ota_web.mapper.UserMapper;
+import com.iot.ota_web.util.ExceptionUtil;
 import com.iot.ota_web.util.MD5Util;
 
 @Service("userPasswordLoginService")
@@ -27,23 +29,33 @@ public class UserPasswordLoginService implements UserLoginServiceInterf {
 	
 	@Autowired
 	UserProperty userProperty;
+	@Autowired
+	TokenMapper tokenMapper;
 	
 	@Transactional(rollbackFor = Exception.class)
 	@Override
-	public void userLogin(JSONObject params, JSONObject result) throws Exception {
+	public void userLogin(User user, JSONObject result) throws Exception {
 		
-		String md5Password = MD5Util.EncryptionStr(params.getString("password"), MD5Util.MD5);
+		String md5Password = MD5Util.EncryptionStr(user.getPassword(), MD5Util.MD5);
 		
-		params.put("password", md5Password);
+		user.setPassword(md5Password);
 		try {
-			List<User> users = userMapper.getUsers(params);
+			List<User> users = userMapper.checkUser(user);
 			if (!users.isEmpty()) {
+				Integer tokenId = users.get(0).getUserTokenId();
+				
 				int expireTime = userProperty.getTokenExpiredTime();
-				Token token = tokenService.createAccessToken(params, expireTime);
-				User user = users.get(0);
-				user.setUserTokenId(token.getId());
+				Token token = null;
+				if (tokenId == null) {
+					token = tokenService.createAccessToken(user, expireTime);
+					user.setUserTokenId(token.getId());
+				}else {
+					token = tokenService.updateToken(expireTime, users.get(0));
+					user.setUserTokenId(tokenId);
+				}
+				
 				userMapper.updateUser(user);
-				result.put("userId", user.getId());
+				result.put("userId", user.getUserId());
 				result.put("token", token.getUuid());
 				result.put("name", user.getName());
 			}else {
@@ -51,7 +63,7 @@ public class UserPasswordLoginService implements UserLoginServiceInterf {
 				result.put("message", "用户名密码错误");
 			}
 		} catch (Exception e) {
-			logger.error("user login by password err!!!" + e.getMessage());
+			ExceptionUtil.printExceptionToLog(logger, e);
 			throw e;
 		}
 	}

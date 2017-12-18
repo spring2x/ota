@@ -2,24 +2,57 @@ package com.iot.ota_web.bean;
 
 import java.sql.Timestamp;
 
+import javax.validation.constraints.Pattern;
+
+import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.NotBlank;
+
+import com.iot.ota_web.valid.group.ValidGroup1;
+import com.iot.ota_web.valid.group.ValidGroup2;
+
 public class User {
+	
 	//用户id
-	public Integer id;
+	public Integer userId;
+	
 	//用户名
+	@NotBlank(message="用户名不能为空", groups={ValidGroup1.class, ValidGroup2.class})
 	public String name;
-	//用户密码
-	public String phone;
+	
+	
 	//用户上一次登录时间
 	public Timestamp lastLogin;
+	
+	
 	//用户对应的token id
 	public Integer userTokenId;
+	
+	
 	//密码
+	@NotBlank(message="密码不能为空", groups={ValidGroup1.class, ValidGroup2.class})
+	@Pattern(regexp="(?=(.*[a-zA-Z]){1,})(?=(.*[\\d]){1,})(?=(.*[\\W]){1,})(?!.*\\s).{8,}", message="密码必须包含数字字母和特殊字符", groups={ValidGroup1.class, ValidGroup2.class})
+	@Length(min=8, max=16, message="密码长度不能低于8位或高于16位", groups={ValidGroup1.class, ValidGroup2.class})
 	public String password;
-	public Integer getId() {
-		return id;
+	
+	//重复输入的密码
+	@NotBlank(message="确认密码不能为空", groups={ValidGroup1.class})
+	@Pattern(regexp="(?=(.*[a-zA-Z]){1,})(?=(.*[\\d]){1,})(?=(.*[\\W]){1,})(?!.*\\s).{8,}", message="确认密码格式错误", groups={ValidGroup1.class})
+	@Length(min=8, max=16, message="确认密码格式错误", groups={ValidGroup1.class})
+	public String repeatPassword;
+	
+	public Integer login_type;
+	
+	public String getRepeatPassword() {
+		return repeatPassword;
 	}
-	public void setId(Integer id) {
-		this.id = id;
+	public void setRepeatPassword(String repeatPassword) {
+		this.repeatPassword = repeatPassword;
+	}
+	public Integer getUserId() {
+		return userId;
+	}
+	public void setUserId(Integer userId) {
+		this.userId = userId;
 	}
 	public String getName() {
 		return name;
@@ -32,12 +65,6 @@ public class User {
 	}
 	public void setPassword(String password) {
 		this.password = password;
-	}
-	public String getPhone() {
-		return phone;
-	}
-	public void setPhone(String phone) {
-		this.phone = phone;
 	}
 	public Timestamp getLastLogin() {
 		return lastLogin;
@@ -52,11 +79,16 @@ public class User {
 		this.userTokenId = userTokenId;
 	}
 	
-	public User(Integer id, String name, String phone, Timestamp lastLogin, Integer userTokenId, String password) {
+	public Integer getLogin_type() {
+		return login_type;
+	}
+	public void setLogin_type(Integer login_type) {
+		this.login_type = login_type;
+	}
+	public User(Integer userId, String name, Timestamp lastLogin, Integer userTokenId, String password) {
 		super();
-		this.id = id;
+		this.userId = userId;
 		this.name = name;
-		this.phone = phone;
 		this.lastLogin = lastLogin;
 		this.userTokenId = userTokenId;
 		this.password = password;
@@ -65,6 +97,9 @@ public class User {
 		super();
 	}
 	
-	
+	@Override
+	public String toString() {
+		return "userId:" + userId + " name:" + name + " password:" + password + " lastLogin:" + lastLogin + " tokenId:" + userTokenId;
+	}
 	
 }

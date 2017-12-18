@@ -9,10 +9,10 @@ public interface UserMapper {
 	
 	/**
 	 * 添加用户
-	 * @param params
+	 * @param user
 	 * @return
 	 */
-	void addUser(JSONObject params);
+	void addUser(User user);
 	
 	/**
 	 * 获取用户
@@ -20,6 +20,20 @@ public interface UserMapper {
 	 * @return
 	 */
 	List<User> getUsers(JSONObject params);
+	
+	/**
+	 * 获取用户
+	 * @param user
+	 * @return
+	 */
+	List<User> existUser(User user);
+	
+	/**
+	 * 验证当前用户是否存在
+	 * @param user
+	 * @return
+	 */
+	List<User> checkUser(User user);
 	
 	/**
 	 * 更新用户信息.
