@@ -19,6 +19,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.ObjectError;
@@ -32,11 +33,12 @@ import com.iot.ota_web.util.ExceptionUtil;
  */
 @Aspect
 @Component
+@Order(1)
 public class ValidAspect {
 	
 	private static Logger logger = LogManager.getLogger(ValidAspect.class);
 
-    @Pointcut("execution(public * com.iot.ota_web.controller.*.*(..))")
+    @Pointcut("execution(public * com.iot.ota_web.controller.UserController.*(..))")
     public void valid() {
     }
 

@@ -110,7 +110,6 @@ public class TerminalService {
 				}
 			}
 		} catch (Exception e) {
-			logger.error("get terminals error!!!" + e.getMessage());
 			throw e;
 		}
 	}
@@ -122,10 +121,10 @@ public class TerminalService {
 	 * @throws Exception
 	 */
 	@Transactional(readOnly=true)
-	public void getTerminalCompetenceProcess(Map<String, Object> params, JSONObject result) throws Exception{
+	public void getTerminalCompetenceProcess(JSONObject result) throws Exception{
 		List<TerminalCompenence> compenenceList = null;
 		try {
-			compenenceList = terminalCompenenceMapper.geTerminalCompenences(params);
+			compenenceList = terminalCompenenceMapper.geTerminalCompenences();
 			JSONObject compenenceJson = new JSONObject();
 			JSONArray compenenceArray = new JSONArray();
 			compenenceJson.put("compenenceArray", compenenceArray);
@@ -142,7 +141,6 @@ public class TerminalService {
 				}
 			}
 		} catch (Exception e) {
-			logger.error("get compenences error!!!" + e.getMessage());
 			throw e;
 		}
 	}
@@ -367,7 +365,6 @@ public class TerminalService {
 			FileUtil.deleteFolder(packageFileMapper, terminalProperty.getUpgradePackagePath() + File.separator + params.getString("path"));
 			
 		} catch (Exception e) {
-			logger.error("delete terminal err   " + e.getMessage());
 			throw e;
 		}
 	}

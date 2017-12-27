@@ -128,7 +128,6 @@ public class PackageService {
 			result.put("code", "0000");
 			result.put("message", "sucess");
 		} catch (Exception e) {
-			logger.error("delete package drr  " + e.getMessage());
 			throw e;
 		}
 	}
@@ -169,7 +168,6 @@ public class PackageService {
 			result.put("code", "0000");
 			result.put("message", "sucess");
 		} catch (Exception e) {
-			logger.error("get packages err" + e.getMessage());
 			throw e;
 		}
 	}

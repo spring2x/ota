@@ -15,9 +15,6 @@ public class UserVeryfyCodeLoginService implements UserLoginServiceInterf {
 	@Autowired
 	public UserMapper userMapper;
 	@Autowired
-	public TokenService tokenService;
-	
-	@Autowired
 	UserProperty userProperty;
 	
 	Logger logger = LogManager.getLogger(UserVeryfyCodeLoginService.class.getName());

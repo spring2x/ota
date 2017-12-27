@@ -150,7 +150,6 @@ public class PackageVersionService {
 			result.put("code", "0000");
 			result.put("message", "success");
 		} catch (Exception e) {
-			logger.error("delete package version err" + e.getMessage());
 			throw e;
 		}
 	}
@@ -268,7 +267,6 @@ public class PackageVersionService {
 				packageVersionInfoArray.add(packageVersionInfoObject);
 			}
 		} catch (Exception e) {
-			logger.error("get package version info err" + e.getMessage());
 			throw e;
 		}
 	}

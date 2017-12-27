@@ -1,8 +1,6 @@
 package com.iot.ota_web.service;
 
 
-import java.sql.Timestamp;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -14,15 +12,16 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.iot.ota_web.bean.User;
 import com.iot.ota_web.bean.UserProperty;
-import com.iot.ota_web.mapper.TokenMapper;
 import com.iot.ota_web.mapper.UserMapper;
 import com.iot.ota_web.util.ExceptionUtil;
 import com.iot.ota_web.util.MD5Util;
+import com.iot.ota_web.util.TokenUtil;
+
+import io.jsonwebtoken.Claims;
 
 @Service
 public class UserService implements ApplicationContextAware{
@@ -33,8 +32,6 @@ public class UserService implements ApplicationContextAware{
 	
 	@Autowired
 	public UserMapper userMapper;
-	@Autowired
-	public TokenMapper tokenMapper;
 	@Autowired
 	UserProperty userProperty;
 	
@@ -111,7 +108,6 @@ public class UserService implements ApplicationContextAware{
 			userMapper.addUser(user);
 			result.put("userId", user.getUserId());
 		} catch (Exception e) {
-			ExceptionUtil.printExceptionToLog(logger, e);
 			throw e;
 		}
 	}
@@ -139,35 +135,55 @@ public class UserService implements ApplicationContextAware{
 		try {
 			userLoginService.userLogin(user, result);
 		} catch (Exception e) {
-			ExceptionUtil.printExceptionToLog(logger, e);
 			throw e;
 		}
 	}
 	
 	@Transactional(rollbackFor=Exception.class)
-	public void refreshUserTokenProcess(JSONObject params, JSONObject result) throws Exception {
-
-		// 设置token过期时间
-		Calendar calendar = Calendar.getInstance();
-		Date expiredDate = new Date(System.currentTimeMillis());
-		calendar.setTime(expiredDate);
-		calendar.add(Calendar.MINUTE,userProperty.getTokenExpiredTime());
-		params.put("expireTime", new Timestamp(calendar.getTimeInMillis()));
+	public void refreshUserTokenProcess(String orgToken, JSONObject result) throws Exception {
+		Claims claims = TokenUtil.parseJWT(orgToken, result);
+		if (claims == null) {
+			return;
+		}
+		String userName = claims.getSubject();
+		String uuid = claims.getId();
+		User user = new User();
+		user.setName(userName);
+		
 		try {
-			tokenMapper.refreshToken(params);
+			List<User> users = userMapper.existUser(user);
+			if (users != null && !users.isEmpty()) {
+				user = users.get(0);
+				JSONObject payload = new JSONObject();
+				payload.put("lastLogin", user.getLastLogin() == null ? new Date() : user.getLastLogin());
+				payload.put("userId", user.getUserId());
+				//创建token
+				TokenUtil.TOKEN_MAP.remove(uuid);
+				String token = TokenUtil.createToken(payload, userProperty.getTokenExpiredTime() * 60 * 1000, user);
+				result.put("token", token);
+			}else {
+				result.put("code", "0001");
+				result.put("message", "未找到该用户");
+			}
 		} catch (Exception e) {
-			ExceptionUtil.printExceptionToLog(logger, e);
 			throw e;
 		}
 	}
 	
 	@Transactional(rollbackFor=Exception.class)
-	public void userLogoutProcess(JSONObject params, JSONObject result) throws Exception{
+	public void userLogoutProcess(String token, JSONObject result) throws Exception{
 		try {
-			userMapper.cleanUserToken(params);
-			tokenMapper.deleteUserToken(params);
+			Claims claims = TokenUtil.parseJWT(token, result);
+			if (claims == null) {
+				if (TokenUtil.TOKEN_EXPIRED_MESSAGE.equals(result.get("message"))) {
+					result.put("code", "0000");
+					result.put("message", "success");
+				}
+				return;
+			}
+			String uuid = claims.getId();
+			TokenUtil.TOKEN_MAP.remove(uuid);
 		} catch (Exception e) {
-			ExceptionUtil.printExceptionToLog(logger, e);
 			throw e;
 		}
 	}
@@ -191,7 +207,6 @@ public class UserService implements ApplicationContextAware{
 				_userJson.put("id", user.getUserId());
 				_userJson.put("uname", user.getName());
 				_userJson.put("last_login", user.getLastLogin());
-				_userJson.put("tokenId", user.getUserTokenId());
 				userArray.add(_userJson);
 			}
 		} catch (Exception e) {

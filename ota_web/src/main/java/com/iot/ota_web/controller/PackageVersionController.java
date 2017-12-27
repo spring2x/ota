@@ -1,10 +1,11 @@
 package com.iot.ota_web.controller;
 
 import java.io.IOException;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSONObject;
 import com.iot.ota_web.service.PackageVersionService;
-import com.iot.ota_web.util.RequestUtil;
+import com.iot.ota_web.util.ExceptionUtil;
 
 /**
  * 升级包版本相关的控制器
@@ -27,6 +28,8 @@ public class PackageVersionController extends BasicController{
 	
 	@Autowired
 	PackageVersionService packageVersionService;
+	
+	private static Logger logger = LogManager.getLogger(PackageVersionController.class);
 	
 	
 	@RequestMapping(value="", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
@@ -47,40 +50,34 @@ public class PackageVersionController extends BasicController{
 		return result.toJSONString();
 	}
 	
-	@RequestMapping(value="", produces="text/html;charset=UTF-8", method={RequestMethod.GET})
-	public @ResponseBody String dealGet(HttpServletRequest request) {
-		String cmd = request.getParameter("cmd");
+	@RequestMapping(value="/get_package_version_info", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	public @ResponseBody String packageVersionInfo(@RequestBody JSONObject params, HttpServletRequest request) {
 		JSONObject result = generateResult();
 		try {
-			Map<String, Object> requestParams = RequestUtil.getParams(request);
-			JSONObject params = new JSONObject(requestParams);
-			if ("get_package_version_info".equals(cmd)) {
-				packageVersionService.getPackageVersions(params, result);
-			}
+			packageVersionService.getPackageVersions(params, result);
 		} catch (Exception e) {
 			result.put("code", "0001");
-			result.put("message", "err");
+			result.put("message", "服务器错误");
+			ExceptionUtil.printExceptionToLog(logger, e);
 		}
 		return result.toJSONString();
 	}
 	
-	@RequestMapping(value="", produces="text/html;charset=UTF-8", method={RequestMethod.DELETE})
+	@RequestMapping(value="/delete_package_version", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
 	public @ResponseBody String dealDelete(@RequestBody JSONObject params, HttpServletRequest request) {
 		
-		String cmd = request.getParameter("cmd");
 		JSONObject result = generateResult();
 		try {
-			if ("delete_package_version".equals(cmd)) {
-				packageVersionService.deleteVersionProcess(params, result);
-			}
+			packageVersionService.deleteVersionProcess(params, result);
 		} catch (Exception e) {
 			if (e instanceof IOException) {
 				result.put("code", "0001");
 				result.put("message", e.getMessage());
 			}else {
 				result.put("code", "0001");
-				result.put("message", "err");
+				result.put("message", "服务器错误");
 			}
+			ExceptionUtil.printExceptionToLog(logger, e);
 		}
 		return result.toJSONString();
 	}

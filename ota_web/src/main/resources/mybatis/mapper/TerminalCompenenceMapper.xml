@@ -10,7 +10,7 @@
 	</resultMap>
 	
 	
-	<select id="geTerminalCompenences" parameterType="map" resultMap="terminalCompenenceMap">
+	<select id="geTerminalCompenences" resultMap="terminalCompenenceMap">
 		select
 			*
 		from

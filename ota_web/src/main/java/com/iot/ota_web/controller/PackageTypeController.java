@@ -2,10 +2,11 @@ package com.iot.ota_web.controller;
 
 
 import java.io.IOException;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,16 +16,18 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSONObject;
 import com.iot.ota_web.service.PackageService;
-import com.iot.ota_web.util.RequestUtil;
+import com.iot.ota_web.util.ExceptionUtil;
 
 /**
  * 设备终端升级包相关的控制器
- * @author liqiang
+ * @author tangliang
  *
  */
 @Controller
 @RequestMapping("/ong/package")
 public class PackageTypeController extends BasicController{
+	
+	private static Logger logger = LogManager.getLogger(PackageTypeController.class);
 	
 	@Autowired
 	PackageService packageService;
@@ -47,40 +50,34 @@ public class PackageTypeController extends BasicController{
 		return result.toJSONString();
 	}
 	
-	@RequestMapping(value="", produces="text/html;charset=UTF-8", method={RequestMethod.GET})
-	public @ResponseBody String dealGet(HttpServletRequest request) {
-		String cmd = request.getParameter("cmd");
+	@RequestMapping(value="/get_packages", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	public @ResponseBody String packages(@RequestBody JSONObject params, HttpServletRequest request) {
 		JSONObject result = generateResult();
 		try {
-			Map<String, Object> requestParams = RequestUtil.getParams(request);
-			JSONObject params = new JSONObject(requestParams);
-			if ("get_packages".equals(cmd)) {
-				packageService.getPackageProcess(params, result);
-			}
+			packageService.getPackageProcess(params, result);
 		} catch (Exception e) {
 			result.put("code", "0001");
-			result.put("message", "err");
+			result.put("message", "服务器错误");
+			ExceptionUtil.printExceptionToLog(logger, e);
 		}
 		return result.toJSONString();
 	}
 	
-	@RequestMapping(value="", produces="text/html;charset=UTF-8", method={RequestMethod.DELETE})
-	public @ResponseBody String dealDelete(@RequestBody JSONObject params, HttpServletRequest request) {
+	@RequestMapping(value="/delete_package", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	public @ResponseBody String deletePackage(@RequestBody JSONObject params, HttpServletRequest request) {
 		
-		String cmd = request.getParameter("cmd");
 		JSONObject result = generateResult();
 		try {
-			if ("delete_package".equals(cmd)) {
-				packageService.deletePackageProcess(params, result);
-			}
+			packageService.deletePackageProcess(params, result);
 		} catch (Exception e) {
 			if (e instanceof IOException) {
 				result.put("code", "0001");
 				result.put("message", e.getMessage());
 			}else {
 				result.put("code", "0001");
-				result.put("message", "err");
+				result.put("message", "服务器错误");
 			}
+			ExceptionUtil.printExceptionToLog(logger, e);
 		}
 		return result.toJSONString();
 	}

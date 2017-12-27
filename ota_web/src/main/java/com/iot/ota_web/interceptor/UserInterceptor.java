@@ -1,92 +1,84 @@
 package com.iot.ota_web.interceptor;
 
 import java.io.PrintWriter;
-import java.sql.Timestamp;
-import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-
 import com.alibaba.fastjson.JSONObject;
-import com.iot.ota_web.bean.Token;
-import com.iot.ota_web.mapper.TokenMapper;
 import com.iot.ota_web.service.UserService;
+import com.iot.ota_web.util.TokenUtil;
+import io.jsonwebtoken.Claims;
 
 public class UserInterceptor implements HandlerInterceptor {
-	
-	TokenMapper tokenMapper;
 	
 	UserService userService;
 	
 	
-	public UserInterceptor(TokenMapper tokenMapper, UserService userService) {
-		this.tokenMapper = tokenMapper;
+	public UserInterceptor( UserService userService) {
 		this.userService = userService;
 	}
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
+		
 		JSONObject result = new JSONObject();
-		String token = request.getHeader("uuid") == null ? request.getParameter("uuid") : request.getHeader("uuid");
-		if (token == null || "".equals(token)) {
-			response.setCharacterEncoding("utf-8");
-			PrintWriter writer = response.getWriter();
-			response.setStatus(401);
+		response.setCharacterEncoding("utf-8");
+		PrintWriter writer = null;
+		
+		final String authHeader = request.getHeader("Authorization");
+		if(StringUtils.isEmpty(authHeader)) {
+			writer = response.getWriter();
 			result.put("code", "0001");
-			result.put("message", "token不能为空");
-			writer.write(result.toString());
+			result.put("message", "为授权");
+			response.setStatus(401);
+			writer.write(result.toJSONString());
 			writer.flush();
 			writer.close();
 			return false;
 		}
-		JSONObject param = new JSONObject();
-		param.put("uuid", request.getHeader("uuid") == null ? request.getParameter("uuid") : request.getHeader("uuid"));
-		List<Token> tokens = tokenMapper.getTokens(param);
-		
-		if (tokens == null || tokens.isEmpty()) {
-			response.setCharacterEncoding("utf-8");
-			PrintWriter writer = response.getWriter();
-			response.setStatus(401);
-			result.put("code", "0001");
-			result.put("message", "token无效");
-			writer.write(result.toString());
-			writer.flush();
-			writer.close();
-			return false;
-		}
-		
-		Token token1  = tokens.get(0);
-		Timestamp expireTime = token1.getExpireTime();
-		if (expireTime.getTime() < System.currentTimeMillis()) {
-			response.setCharacterEncoding("utf-8");
-			PrintWriter writer = response.getWriter();
-			response.setStatus(401);
-			result.put("code", "0001");
-			result.put("message", "用户授权过期，请重新登录");
-			writer.write(result.toString());
-			writer.flush();
-			writer.close();
-			return false;
-		}
-		
-		JSONObject params = new JSONObject();
-		params.put("org_token", param.get("uuid"));
+		Claims claims = null;
 		try {
-			userService.refreshUserTokenProcess(params, result);
+			claims = TokenUtil.parseJWT(authHeader, result);
+			if (claims == null) {
+				response.setStatus(401);
+				if (StringUtils.endsWithIgnoreCase(request.getRequestURI(), "logout") && TokenUtil.TOKEN_EXPIRED_MESSAGE.equals(result.get("message"))) {
+					result.put("code", "0000");
+					result.put("message", "success");
+					response.setStatus(200);
+				}
+				writer = response.getWriter();
+				writer.write(result.toJSONString());
+				writer.flush();
+				writer.close();
+				return false;
+			}
 		} catch (Exception e) {
-			response.setCharacterEncoding("utf-8");
-			PrintWriter writer = response.getWriter();
+			result.put("code", "0001");
+			result.put("message", "服务器错误");
+			writer = response.getWriter();
+			response.setStatus(500);
+			writer.write(result.toJSONString());
+			writer.flush();
+			writer.close();
+			return false;
+		}
+		
+		/*try {
+			userService.refreshUserTokenProcess(authHeader, result);
+		} catch (Exception e) {
+			ExceptionUtil.printExceptionToLog(logger, e);
 			result.put("code", "0001");
 			result.put("message", "服务器错误");
 			writer.write(result.toString());
 			writer.flush();
 			writer.close();
 			return false;
-		}
+		}*/
+		
+		request.setAttribute("userId", claims.get("userId"));
 		return true;
 	}
 

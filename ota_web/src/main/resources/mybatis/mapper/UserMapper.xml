@@ -7,7 +7,6 @@
 		<result column="name" property="name"/>
 		<result column="password" property="password"/>
 		<result column="lastLogin" property="lastLogin"/>
-		<result column="user_token_id" property="userTokenId"/>
 	</resultMap>
 	
 	<insert id="addUser" parameterType="user">
@@ -41,24 +40,4 @@
 		where
 			name=#{name} and password=#{password}
 	</select>
-	
-	<update id="updateUser" parameterType="user">
-		update
-			user
-		set
-			<if test="userTokenId != null">
-				user_token_id=#{userTokenId}
-			</if>
-		where
-			name=#{name}
-	</update>
-	
-	<update id="cleanUserToken" parameterType="com.alibaba.fastjson.JSONObject">
-		update
-			user
-		set
-			user_token_id=null
-		where
-			user_token_id=(select id from token where uuid=#{token})
-	</update>
 </mapper>

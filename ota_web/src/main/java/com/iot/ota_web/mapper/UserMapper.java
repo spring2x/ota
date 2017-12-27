@@ -35,15 +35,4 @@ public interface UserMapper {
 	 */
 	List<User> checkUser(User user);
 	
-	/**
-	 * 更新用户信息.
-	 * @param user
-	 */
-	void updateUser(User user);
-	
-	/**
-	 * 更新用户过期的token id为null.
-	 */
-	void cleanUserToken(JSONObject params);
-	
 }

@@ -31,7 +31,7 @@
 	
 	<select id="getTerminals" parameterType="map" resultType="map">
 		SELECT 
-			t.`id` terminalId ,t.`type` terminalType,t.`introduce` terminalIntroduce, u.`name` userName, u.`phone` userPhone, utc.`competence_type` competenceType
+			t.`id` terminalId ,t.`type` terminalType,t.`introduce` terminalIntroduce, u.`name` userName, utc.`competence_type` competenceType
 			, t.business_platform_url platformUrl,u.id userId
 		FROM 
 			terminal t, user_terminal_competence utc, user u 
