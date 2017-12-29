@@ -17,7 +17,7 @@ public class UserInterceptorConfigurer extends WebMvcConfigurerAdapter {
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(new UserInterceptor(userService)).addPathPatterns("/ota/user/**", "/ong/terminal", "/ong/terminal/**", "/ong/package", "/ong/package/**", "/ong/version", "/ong/version/**", "/ong/packageFile", "/ong/packageFile/**")
-		.excludePathPatterns("/ota/user/login", "/ota/user/registor");
+		.excludePathPatterns("/ota/user/login", "/ota/user/registor", "/ong/packageFile/downloadFile");
 		super.addInterceptors(registry);
 	}
 }

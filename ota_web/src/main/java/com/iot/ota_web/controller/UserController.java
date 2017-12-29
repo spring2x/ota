@@ -41,7 +41,7 @@ public class UserController extends BasicController {
 	 * @param bindingResult
 	 * @return
 	 */
-	@RequestMapping(value="/registor", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="/registor", method={RequestMethod.POST})
 	public @ResponseBody String userRegistor(@Validated(value={ValidGroup1.class}) @RequestBody User user, BindingResult bindingResult){
 		JSONObject result = generateResult();
 		try {
@@ -61,7 +61,7 @@ public class UserController extends BasicController {
 	 * @param bindingResult
 	 * @return
 	 */
-	@RequestMapping(value="/login", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="/login", method={RequestMethod.POST})
 	public @ResponseBody String userLogin(@Validated(value={ValidGroup2.class}) @RequestBody User user, BindingResult bindingResult){
 		JSONObject result = generateResult();
 		try {
@@ -80,7 +80,7 @@ public class UserController extends BasicController {
 	 * @param token
 	 * @return
 	 */
-	@RequestMapping(value="/refreshToken", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="/refreshToken", method={RequestMethod.POST})
 	public @ResponseBody String refreshUserToken(@RequestHeader("Authorization") String token){
 		JSONObject result = generateResult();
 		
@@ -100,7 +100,7 @@ public class UserController extends BasicController {
 	 * @param token
 	 * @return
 	 */
-	@RequestMapping(value="/logout", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="/logout", method={RequestMethod.POST})
 	public @ResponseBody String userLogout(@RequestHeader("Authorization") String token){
 		JSONObject result = generateResult();
 		
@@ -120,7 +120,7 @@ public class UserController extends BasicController {
 	 * @param token
 	 * @return
 	 */
-	@RequestMapping(value="/getUsers", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="/getUsers", method={RequestMethod.POST})
 	public @ResponseBody String getUsers(@RequestHeader("Authorization") String token){
 		JSONObject result = generateResult();
 		JSONObject params = new JSONObject();

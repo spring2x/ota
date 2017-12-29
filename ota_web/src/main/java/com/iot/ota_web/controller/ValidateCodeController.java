@@ -31,7 +31,7 @@ public class ValidateCodeController {
 	@Value("${valid.code.expire}")
 	private long expireTime;
 
-	@RequestMapping(value="/get", produces="text/html;charset=UTF-8", method={RequestMethod.GET})
+	@RequestMapping(value="/get", method={RequestMethod.GET})
 	public String getValidCode(HttpServletRequest request, HttpServletResponse response){
 		 // 设置响应的类型格式为图片格式  
 	    response.setContentType("image/jpeg");

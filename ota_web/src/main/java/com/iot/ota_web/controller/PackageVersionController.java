@@ -32,7 +32,7 @@ public class PackageVersionController extends BasicController{
 	private static Logger logger = LogManager.getLogger(PackageVersionController.class);
 	
 	
-	@RequestMapping(value="", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="", method={RequestMethod.POST})
 	public @ResponseBody String dealPost(@RequestBody JSONObject params, HttpServletRequest request ){
 		String cmd = request.getParameter("cmd");
 		JSONObject result = generateResult();
@@ -50,7 +50,7 @@ public class PackageVersionController extends BasicController{
 		return result.toJSONString();
 	}
 	
-	@RequestMapping(value="/get_package_version_info", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="/get_package_version_info", method={RequestMethod.POST})
 	public @ResponseBody String packageVersionInfo(@RequestBody JSONObject params, HttpServletRequest request) {
 		JSONObject result = generateResult();
 		try {
@@ -63,7 +63,7 @@ public class PackageVersionController extends BasicController{
 		return result.toJSONString();
 	}
 	
-	@RequestMapping(value="/delete_package_version", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="/delete_package_version", method={RequestMethod.POST})
 	public @ResponseBody String dealDelete(@RequestBody JSONObject params, HttpServletRequest request) {
 		
 		JSONObject result = generateResult();

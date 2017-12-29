@@ -65,7 +65,7 @@ public class UserPasswordLoginService implements UserLoginServiceInterf {
 				payload.put("userId", users.get(0).getUserId());
 				//创建token
 				String token = TokenUtil.createToken(payload, userProperty.getTokenExpiredTime() * 60 * 1000, user);
-				result.put("userId", user.getUserId());
+				result.put("userId", users.get(0).getUserId());
 				result.put("token", token);
 				result.put("name", user.getName());
 			}else {

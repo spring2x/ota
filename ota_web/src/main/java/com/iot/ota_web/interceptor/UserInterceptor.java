@@ -26,13 +26,14 @@ public class UserInterceptor implements HandlerInterceptor {
 		
 		JSONObject result = new JSONObject();
 		response.setCharacterEncoding("utf-8");
+		response.setHeader("Content-type", "text/html;charset=UTF-8");
 		PrintWriter writer = null;
 		
 		final String authHeader = request.getHeader("Authorization");
 		if(StringUtils.isEmpty(authHeader)) {
 			writer = response.getWriter();
 			result.put("code", "0001");
-			result.put("message", "为授权");
+			result.put("message", "未授权");
 			response.setStatus(401);
 			writer.write(result.toJSONString());
 			writer.flush();
@@ -85,8 +86,7 @@ public class UserInterceptor implements HandlerInterceptor {
 	@Override
 	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
 			ModelAndView modelAndView) throws Exception {
-		// TODO Auto-generated method stub
-
+		response.setContentType("application/json");
 	}
 
 	@Override

@@ -32,7 +32,7 @@ public class PackageTypeController extends BasicController{
 	@Autowired
 	PackageService packageService;
 	
-	@RequestMapping(value="", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="", method={RequestMethod.POST})
 	public @ResponseBody String dealPost(@RequestBody JSONObject params, HttpServletRequest request ){
 		String cmd = request.getParameter("cmd");
 		JSONObject result = generateResult();
@@ -50,7 +50,7 @@ public class PackageTypeController extends BasicController{
 		return result.toJSONString();
 	}
 	
-	@RequestMapping(value="/get_packages", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="/get_packages", method={RequestMethod.POST})
 	public @ResponseBody String packages(@RequestBody JSONObject params, HttpServletRequest request) {
 		JSONObject result = generateResult();
 		try {
@@ -63,7 +63,7 @@ public class PackageTypeController extends BasicController{
 		return result.toJSONString();
 	}
 	
-	@RequestMapping(value="/delete_package", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="/delete_package", method={RequestMethod.POST})
 	public @ResponseBody String deletePackage(@RequestBody JSONObject params, HttpServletRequest request) {
 		
 		JSONObject result = generateResult();

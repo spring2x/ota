@@ -47,18 +47,22 @@ public class OperateAspect {
 
 		try {
 			Object[] objects = pjp.getArgs();
-			String userId = null;
+			Object userId = null;
+			HttpServletRequest request = null;
 			for (Object object : objects) {
 				if (object instanceof HttpServletRequest) {
-					HttpServletRequest request = (HttpServletRequest) object;
-					userId = request.getAttribute("userId").toString();
+					request = (HttpServletRequest) object;
+					userId = request.getAttribute("userId");
 				}
 			}
-
-			for (Object object : objects) {
-				if (object instanceof JSONObject) {
-					JSONObject params = (JSONObject) object;
-					params.put("userId", userId);
+			if (userId != null) {
+				for (Object object : objects) {
+					if (object instanceof JSONObject) {
+						JSONObject params = (JSONObject) object;
+						if (!"add_terminal_user".equals(request.getParameter("cmd")) && !"update_terminal_user_competence".equals(request.getParameter("cmd"))) {
+							params.put("userId", userId);
+						}
+					}
 				}
 			}
 			return pjp.proceed();

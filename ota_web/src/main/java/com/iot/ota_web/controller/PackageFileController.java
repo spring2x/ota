@@ -15,7 +15,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -45,12 +44,13 @@ public class PackageFileController extends BasicController{
 	@Autowired
 	TerminalProperty terminalProperty;
 	
-	@RequestMapping(value="/upload", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="/upload", method={RequestMethod.POST})
 	public @ResponseBody String deal(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
 		
 		JSONObject result = generateResult();
 		if (!file.isEmpty()) {
 			Map<String, Object> params = new HashMap<>();
+			params.put("userId", request.getAttribute("userId").toString());
 			try {
 				params.putAll(RequestUtil.getParams(request));
 				packageFileService.saveFile(file, params, result);
@@ -67,10 +67,11 @@ public class PackageFileController extends BasicController{
 		return result.toJSONString();
 	}
 	
-	@RequestMapping(value="/packageFilesInfo", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="/packageFilesInfo", method={RequestMethod.POST})
 	public @ResponseBody String getPackageFilesInfo(HttpServletRequest request) {
 		JSONObject result = generateResult();
 		Map<String, Object> params = new HashMap<>();
+		params.put("userId", request.getAttribute("userId").toString());
 		try {
 			params.putAll(RequestUtil.getParams(request));
 			packageFileService.getPackageFileInfo(params, result);
@@ -81,18 +82,18 @@ public class PackageFileController extends BasicController{
 		return result.toJSONString();
 	}
 	
-	@RequestMapping(value="/downloadFile", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
-	public @ResponseBody String downloadPackageFile(@RequestBody Map<String, Object> params, HttpServletRequest request, HttpServletResponse response){
+	@RequestMapping(value="/downloadFile")
+	public @ResponseBody String downloadPackageFile(HttpServletRequest request, HttpServletResponse response){
 		JSONObject result = generateResult();
-		/*Map<String, Object> params = new HashMap<>();
+		Map<String, Object> params = new HashMap<>();
 		try {
 			params.putAll(RequestUtil.getParams(request));
 		} catch (Exception e) {
 			ExceptionUtil.printExceptionToLog(logger, e);
 			result.put("code", "0001");
-			result.put("message", "err");
+			result.put("message", "服务器错误");
 			return result.toJSONString();
-		}*/
+		}
 		
 		if (params.isEmpty() || !params.containsKey("terminal_id") || !params.containsKey("package_id") || !params.containsKey("version_id") || !params.containsKey("fileName")) {
 			result.put("code", "0001");

@@ -28,8 +28,8 @@ public class User {
 	
 	//密码
 	@NotBlank(message="密码不能为空", groups={ValidGroup1.class, ValidGroup2.class})
-	@Pattern(regexp="(?=(.*[a-zA-Z]){1,})(?=(.*[\\d]){1,})(?=(.*[\\W]){1,})(?!.*\\s).{3,}", message="密码必须包含数字字母和特殊字符", groups={ValidGroup1.class, ValidGroup2.class})
-	@Length(min=8, max=16, message="密码长度不能低于8位或高于16位", groups={ValidGroup1.class, ValidGroup2.class})
+	@Pattern(regexp="(?=(.*[a-zA-Z]){1,})(?=(.*[\\d]){1,})(?=(.*[\\W]){1,})(?!.*\\s).{3,}", message="密码必须包含数字字母和特殊字符", groups={ValidGroup1.class})
+	@Length(min=8, max=16, message="密码长度不能低于8位或高于16位", groups={ValidGroup1.class})
 	public String password;
 	
 	//重复输入的密码

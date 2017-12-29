@@ -32,7 +32,7 @@ public class TerminalController extends BasicController{
 	
 	private static Logger logger = LogManager.getLogger(TerminalController.class);
 	
-	@RequestMapping(value="", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="", method={RequestMethod.POST})
 	public @ResponseBody String dealPost(@RequestBody JSONObject params, HttpServletRequest request ){
 		String cmd = request.getParameter("cmd");
 		JSONObject result = generateResult();
@@ -78,7 +78,7 @@ public class TerminalController extends BasicController{
 	}*/
 	
 	
-	@RequestMapping(value="/get_terminals", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="/get_terminals", method={RequestMethod.POST})
 	public @ResponseBody String terminals(@RequestBody JSONObject params, HttpServletRequest request){
 		JSONObject result = generateResult();
 		try {
@@ -91,7 +91,7 @@ public class TerminalController extends BasicController{
 		return result.toJSONString();
 	}
 	
-	@RequestMapping(value="/get_terminal_competence", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="/get_terminal_competence", method={RequestMethod.POST})
 	public @ResponseBody String terminalCompetence(HttpServletRequest request){
 		JSONObject result = generateResult();
 		try {
@@ -104,11 +104,12 @@ public class TerminalController extends BasicController{
 		return result.toJSONString();
 	}
 	
-	@RequestMapping(value="/get_user_terminal_competence", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
-	public @ResponseBody String userTerminalCompetence(HttpServletRequest request){
+	@RequestMapping(value="/get_user_terminal_competence", method={RequestMethod.POST})
+	public @ResponseBody String userTerminalCompetence(@RequestBody JSONObject params, HttpServletRequest request){
 		JSONObject result = generateResult();
 		try {
-			terminalService.getTerminalsProcess(new JSONObject(), result);
+			params.remove("userId");
+			terminalService.getTerminalsProcess(params, result);
 		} catch (Exception e) {
 			result.put("code", "0001");
 			result.put("message", "服务器错误");
@@ -120,7 +121,7 @@ public class TerminalController extends BasicController{
 	
 	
 	
-	@RequestMapping(value="/deleteTerminal", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
+	@RequestMapping(value="/deleteTerminal", method={RequestMethod.POST})
 	public @ResponseBody String deleteTerminal(@RequestBody JSONObject params, HttpServletRequest request) {
 		JSONObject result = generateResult();
 		try {

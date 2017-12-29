@@ -95,6 +95,11 @@ public class TokenUtil {
 	public static Claims parseJWT(String jwt, JSONObject result) {
 		try {
 			Claims claims = Jwts.parser().setSigningKey(SECRET).parseClaimsJws(jwt).getBody();
+			if (!TokenUtil.TOKEN_MAP.containsKey(claims.getId())) {
+				result.put("code", "0001");
+				result.put("message", TOKEN_EXPIRED_MESSAGE);
+				return null;
+			}
 			return claims;
 		} catch (ExpiredJwtException e) {
             // 在解析JWT字符串时，如果‘过期时间字段’已经早于当前时间，将会抛出ExpiredJwtException异常，说明本次请求已经失效
