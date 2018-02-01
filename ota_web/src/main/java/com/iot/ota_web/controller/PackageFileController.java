@@ -1,10 +1,8 @@
 package com.iot.ota_web.controller;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +12,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -83,7 +86,37 @@ public class PackageFileController extends BasicController{
 	}
 	
 	@RequestMapping(value="/downloadFile")
-	public @ResponseBody String downloadPackageFile(HttpServletRequest request, HttpServletResponse response){
+	public @ResponseBody ResponseEntity<InputStreamResource> downloadPackageFile(HttpServletRequest request, HttpServletResponse response){
+		Map<String, Object> params = new HashMap<>();
+		try {
+			params.putAll(RequestUtil.getParams(request));
+		} catch (UnsupportedEncodingException e) {
+			ExceptionUtil.printExceptionToLog(logger, e);
+		}
+		String realPath = terminalProperty.getUpgradePackagePath();
+		StringBuilder filePath = new StringBuilder(realPath).append(File.separator).append(params.get("terminal_id"))
+				.append(File.separator).append(params.get("package_id")).append(File.separator)
+				.append(params.get("version_id")).append(File.separator).append(params.get("fileName"));
+
+		FileSystemResource file = new FileSystemResource(filePath.toString());
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+		try {
+			headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", new String(params.get("fileName").toString().getBytes(), "ISO-8859-1")));
+		} catch (UnsupportedEncodingException e) {
+			ExceptionUtil.printExceptionToLog(logger, e);
+		}
+		headers.add("Pragma", "no-cache");
+		headers.add("Expires", "0");
+		try {
+			return ResponseEntity.ok().headers(headers).contentLength(file.contentLength())
+					.contentType(MediaType.parseMediaType("application/octet-stream"))
+					.body(new InputStreamResource(file.getInputStream()));
+		} catch (IOException e) {
+			ExceptionUtil.printExceptionToLog(logger, e);
+			return null;
+		}
+		/*
 		JSONObject result = generateResult();
 		Map<String, Object> params = new HashMap<>();
 		try {
@@ -107,7 +140,15 @@ public class PackageFileController extends BasicController{
 		File file = new File(filePath.toString());
 		if (file.exists()) {
 			response.setContentType("application/force-download");// 设置强制下载不打开
-			response.addHeader("Content-Disposition","attachment;fileName=" + params.get("fileName"));// 设置文件名
+			try {
+				// 设置文件名
+				response.addHeader("Content-Disposition","attachment;fileName=" + new String(params.get("fileName").toString().getBytes(), "ISO-8859-1"));
+			} catch (UnsupportedEncodingException e1) {
+				ExceptionUtil.printExceptionToLog(logger, e1);
+				result.put("code", "0001");
+				result.put("message", "服务器错误");
+				return result.toJSONString();
+			}
 			byte[] buffer = new byte[1024];
 			FileInputStream fis = null;
 			BufferedInputStream bis = null;
@@ -153,5 +194,5 @@ public class PackageFileController extends BasicController{
 			return result.toJSONString();
 		}
 		return result.toJSONString();
-	}
+	*/}
 }
