@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.iot.oauth.mapper.PackageVersionMapper">
+
+	<resultMap type="PackageVersion" id="PackageVersionMap">
+		<id column="id" property="id"/>
+		<result column="package_id" property="packageId"/>
+		<result column="package_version" property="packageVersion"/>
+		<result column="introduce" property="introduce"/>
+	</resultMap>
+	
+	
+	<select id="getPackageVersions" resultMap="PackageVersionMap" parameterType="map">
+		select
+			*
+		from
+			package_version
+		where
+			1=1
+			<if test='package_id != null'>
+				and package_id=#{package_id}
+			</if>
+			
+			<if test="package_version != null">
+				and package_version=#{package_version}
+			</if>
+			<if test='version_id != null'>
+				and id=#{version_id}
+			</if>
+	</select>
+	
+	<insert id="addPackageVersion" parameterType="com.alibaba.fastjson.JSONObject">
+		<selectKey resultType="int" order="AFTER" keyProperty="package_version_id">
+          SELECT LAST_INSERT_ID()
+     	</selectKey>
+     	insert into 
+     		package_version(package_id, package_version, introduce) 
+     	values
+     		(#{package_id}, #{package_version}, #{introduce})
+	</insert>
+	
+	<delete id="deletePackageVersion" parameterType="map">
+		delete from
+			package_version
+		where
+			id=#{version_id}
+	</delete>
+	
+	<select id="getPackageVersionInfos" parameterType="com.alibaba.fastjson.JSONObject" resultType="map">
+		SELECT 
+			utc.`terminalId` terminal_id,
+			t.`type` terminal_type,
+			t.`introduce` terminal_introduce,
+			p.`id` package_id,
+			p.`package_name` package_name,
+			p.`introduce` package_introduce,
+			pv.`id` package_version_id,
+			pv.`package_version` package_version,
+			pv.`introduce` package_version_introduce 
+		FROM 
+			terminal t,
+			user_terminal_competence utc,
+			package p,
+			package_version pv
+		WHERE
+			utc.`userId`= #{userId}
+			AND utc.`terminalId`=p.`terminal_id`
+			AND p.`id`=pv.`package_id`
+			AND t.`id`=utc.`terminalId`
+			<if test="package_id != null">
+				AND pv.`package_id`=#{package_id}
+			</if>
+			<if test="package_version != null">
+				AND pv.`package_version`=#{package_version}
+			</if>
+	</select>
+	
+	<update id="updatePackageVersionInfo" parameterType="com.alibaba.fastjson.JSONObject">
+		update
+			package_version
+		set
+			id=#{version_id}
+			<if test="package_version != null">
+				,package_version=#{package_version}
+			</if>
+			<if test='introduce != null and introduce != "null" and introduce != ""'>
+				,introduce=#{introduce}
+			</if>
+		where
+			id=#{version_id}
+	</update>
+	
+</mapper>

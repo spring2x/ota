@@ -24,6 +24,7 @@ import com.iot.oauth.bean.PackageFile;
 import com.iot.oauth.bean.PlatformProperty;
 import com.iot.oauth.mapper.DeviceTokenMapper;
 import com.iot.oauth.mapper.PackageFileMapper;
+import com.iot.oauth.mapper.PackageVersionMapper;
 import com.iot.oauth.mapper.PlatformTokenMapper;
 
 
@@ -40,6 +41,9 @@ public class DeviceTokenService {
 	
 	@Autowired
 	PlatformProperty platformProperty;
+	
+	@Autowired
+	PackageVersionMapper packageVersionMapper;
 	/**
 	 * 增加设备的token
 	 * @param params
@@ -168,6 +172,9 @@ public class DeviceTokenService {
 			result.put("terminal_id", packageFile.getTerminalId());
 			result.put("package_id", packageFile.getPackageId());
 			result.put("version_id", packageFile.getPackageVersionId());
+			
+			params.put("version_id", packageFile.getPackageVersionId());
+			result.put("introduce", packageVersionMapper.getPackageVersions(params).get(0).getIntroduce());
 		}else {
 			result.put("code", "403");
 			result.put("message", "平台还没有权限");
