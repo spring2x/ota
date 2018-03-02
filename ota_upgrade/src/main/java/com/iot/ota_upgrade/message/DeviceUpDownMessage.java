@@ -10,24 +10,24 @@ public class DeviceUpDownMessage extends BasicMessage {
 	/**
 	 * 终端类型的标识
 	 */
-	public byte deviceTypeMark;
+	public short deviceTypeMark;
 	
 	/**
 	 * 升级包的标识
 	 */
-	public byte pacakgeMark;
+	public short pacakgeMark;
 	
 	/**
 	 * 升级包版本的标识
 	 */
-	public byte pacakgeVersionMark;
+	public short pacakgeVersionMark;
 	
 	/**
 	 * 当前请求的升级包编号
 	 */
 	public short packageNo;
 	
-	public byte getDeviceTypeMark() {
+	public short getDeviceTypeMark() {
 		return deviceTypeMark;
 	}
 
@@ -35,7 +35,7 @@ public class DeviceUpDownMessage extends BasicMessage {
 		this.deviceTypeMark = deviceTypeMark;
 	}
 
-	public byte getPacakgeMark() {
+	public short getPacakgeMark() {
 		return pacakgeMark;
 	}
 
@@ -43,7 +43,7 @@ public class DeviceUpDownMessage extends BasicMessage {
 		this.pacakgeMark = pacakgeMark;
 	}
 
-	public byte getPacakgeVersionMark() {
+	public short getPacakgeVersionMark() {
 		return pacakgeVersionMark;
 	}
 
@@ -59,8 +59,8 @@ public class DeviceUpDownMessage extends BasicMessage {
 		this.packageNo = packageNo;
 	}
 	
-	public DeviceUpDownMessage(byte messageType, byte messageLength, byte checksum, byte deviceTypeMark,
-			byte pacakgeMark, byte pacakgeVersionMark, short packageNo) {
+	public DeviceUpDownMessage(byte messageType, byte messageLength, byte checksum, short deviceTypeMark,
+			short pacakgeMark, short pacakgeVersionMark, short packageNo) {
 		super(messageType, messageLength, checksum);
 		this.deviceTypeMark = deviceTypeMark;
 		this.pacakgeMark = pacakgeMark;

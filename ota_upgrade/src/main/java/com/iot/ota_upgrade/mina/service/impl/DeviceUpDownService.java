@@ -23,9 +23,9 @@ public class DeviceUpDownService extends BasicDeviceActionService {
 	@Override
 	public void process(IoSession session, BasicMessage message, JSONObject result) throws Exception {
 		DeviceUpDownMessage deviceUpDownMessage = (DeviceUpDownMessage) message;
-		byte deviceTypeMark = deviceUpDownMessage.getDeviceTypeMark();
-		byte packageMark = deviceUpDownMessage.getPacakgeMark();
-		byte packageVersionMark = deviceUpDownMessage.getPacakgeVersionMark();
+		short deviceTypeMark = deviceUpDownMessage.getDeviceTypeMark();
+		short packageMark = deviceUpDownMessage.getPacakgeMark();
+		short packageVersionMark = deviceUpDownMessage.getPacakgeVersionMark();
 		short packageNo = deviceUpDownMessage.getPackageNo();
 		
 		String fileMark = new StringBuilder("").append(deviceTypeMark).append(File.separator).append(packageMark).append(File.separator).append(packageVersionMark).toString();

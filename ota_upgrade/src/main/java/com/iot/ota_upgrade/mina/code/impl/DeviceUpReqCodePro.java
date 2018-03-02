@@ -20,8 +20,14 @@ public class DeviceUpReqCodePro extends BasicCodeProcessor {
 	
 	//Logger logger = LogManager.getLogger(DeviceUpReqCodePro.class.getName());
 	
-	@Override
-	public DeviceUpReqMessage decode(BasicMessage basicMessage, IoBuffer buffer) throws Exception {
+	/**
+	 * 老版协议解码
+	 * @param basicMessage
+	 * @param buffer
+	 * @return
+	 * @throws Exception
+	 */
+	public DeviceUpReqMessage oldDecode(BasicMessage basicMessage, IoBuffer buffer) throws Exception {
 		//授权码
 		String authCode = MinaUtil.getStringFromIoBuffer(buffer, DeviceUpReqConstant.UPGRADE_AUTH_CODE_LENTH, DeviceUpReqConstant.CHARSET);
 		//升级包，单包长度
@@ -50,6 +56,45 @@ public class DeviceUpReqCodePro extends BasicCodeProcessor {
 		//logger.debug(deviceUpReqMessage.toString());
 		return deviceUpReqMessage;
 	}
+	
+	@Override
+	public DeviceUpReqMessage decode(BasicMessage basicMessage, IoBuffer buffer) throws Exception {
+		DeviceUpReqMessage deviceUpReqMessage = null;
+		try {
+			//授权码
+			String authCode = MinaUtil.getStringFromIoBuffer(buffer, DeviceUpReqConstant.UPGRADE_AUTH_CODE_LENTH, DeviceUpReqConstant.CHARSET);
+			//升级包，单包长度
+			Short singlePackageLength = buffer.getShort();
+			//设备标识
+			short deviceMark = buffer.getShort();
+			//包标识
+			short packageMark = buffer.getShort();
+			//包版本标识
+			short versionMark = buffer.getShort();
+			//校验方式
+			byte validMark = buffer.get();
+			//传输模式
+			byte transMode = buffer.get();
+			//升级标识长度
+			byte upMarkLenth = buffer.get();
+			//升级标识
+			String upMark = MinaUtil.getStringFromIoBuffer(buffer, upMarkLenth, DeviceUpReqConstant.CHARSET);
+			
+			deviceUpReqMessage = new DeviceUpReqMessage(basicMessage.getMessageType(), basicMessage.getMessageLength(),
+					basicMessage.getChecksum(), authCode, upMarkLenth, upMark, singlePackageLength, deviceMark, packageMark,
+					versionMark, validMark, transMode);
+			//计算的校验码与终端发送的校验码是否一致
+			deviceUpReqMessage
+					.setCheckSumResult(basicMessage.getChecksum() == calculateCheckSum(deviceUpReqMessage) ? true : false);
+			//logger.debug(deviceUpReqMessage.toString());
+		} catch (Exception e) {
+			deviceUpReqMessage = oldDecode(basicMessage, buffer);
+		}
+		return deviceUpReqMessage;
+	} 
+	
+	
+	
 	
 	/**
 	 * 计算消息的校验和.

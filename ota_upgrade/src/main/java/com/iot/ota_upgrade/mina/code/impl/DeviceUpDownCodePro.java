@@ -18,8 +18,7 @@ import com.iot.ota_upgrade.util.ByteUtil;
 public class DeviceUpDownCodePro extends BasicCodeProcessor {
 	//static Logger logger = LogManager.getLogger(DeviceUpReqCodePro.class.getName());
 	
-	@Override
-	public BasicMessage decode(BasicMessage basicMessage, IoBuffer buffer) throws Exception {
+	public BasicMessage oldDecode(BasicMessage basicMessage, IoBuffer buffer) throws Exception {
 		//logger.debug("*****************************  " + "message decode start...");
 		byte deviceTypeMark = buffer.get();
 		byte packageMark = buffer.get();
@@ -34,6 +33,32 @@ public class DeviceUpDownCodePro extends BasicCodeProcessor {
 						.setCheckSumResult(basicMessage.getChecksum() == calculateCheckSum(deviceUpDownMessage) ? true : false);
 		//logger.debug("*****************************  " + "message decode end");
 		//logger.debug(deviceUpDownMessage.toString());
+		return deviceUpDownMessage;
+	}
+	
+	@Override
+	public BasicMessage decode(BasicMessage basicMessage, IoBuffer buffer) throws Exception {
+		//logger.debug("*****************************  " + "message decode start...");
+		
+		DeviceUpDownMessage deviceUpDownMessage = null;
+		try {
+			short deviceTypeMark = buffer.getShort();
+			short packageMark = buffer.getShort();
+			short packageVersionMark = buffer.getShort();
+			short packageNo = buffer.getShort();
+			
+			deviceUpDownMessage = new DeviceUpDownMessage(basicMessage.getMessageType(),
+					basicMessage.getMessageLength(), basicMessage.getChecksum(), deviceTypeMark, packageMark,
+					packageVersionMark, packageNo);
+			//计算的校验码与终端发送的校验码是否一致
+			deviceUpDownMessage
+							.setCheckSumResult(basicMessage.getChecksum() == calculateCheckSum(deviceUpDownMessage) ? true : false);
+			//logger.debug("*****************************  " + "message decode end");
+			//logger.debug(deviceUpDownMessage.toString());
+		} catch (Exception e) {
+			deviceUpDownMessage = (DeviceUpDownMessage) oldDecode(basicMessage, buffer);
+		}
+		
 		return deviceUpDownMessage;
 	}
 	

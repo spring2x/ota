@@ -69,9 +69,9 @@ public class DeviceUpReqService extends BasicDeviceActionService {
 		}
 
 		short singlePackLength = message.getSinglePackageLength();
-		byte deviceMark = message.getDeviceMark();
-		byte packageMark = message.getPackageMark();
-		byte versionMark = message.getVersionMark();
+		short deviceMark = message.getDeviceMark();
+		short packageMark = message.getPackageMark();
+		short versionMark = message.getVersionMark();
 		String fileMark = deviceMark + File.separator + packageMark + File.separator + versionMark;
 
 		if (!fileValideCodeMap.containsKey(fileMark)) {

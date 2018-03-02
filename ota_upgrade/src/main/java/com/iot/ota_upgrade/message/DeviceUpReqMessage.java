@@ -10,11 +10,11 @@ public class DeviceUpReqMessage extends BasicMessage {
 	// 升级包，单包长度
 	private short singlePackageLength;
 	// 设备标识
-	private byte deviceMark;
+	private short deviceMark;
 	// 包标识
-	private byte packageMark;
+	private short packageMark;
 	// 包版本标识
-	private byte versionMark;
+	private short versionMark;
 	// 校验方式
 	private byte validMark;
 	// 传输模式
@@ -25,7 +25,7 @@ public class DeviceUpReqMessage extends BasicMessage {
 	}
 	
 	public DeviceUpReqMessage(byte messageType, byte messageLength, byte checksum, String authCode, byte upMarkLenth,
-			String upMark, short singlePackageLength, byte deviceMark, byte packageMark, byte versionMark,
+			String upMark, short singlePackageLength, short deviceMark, short packageMark, short versionMark,
 			byte validMark, byte transMode) {
 		super(messageType, messageLength, checksum);
 		this.authCode = authCode;
@@ -63,19 +63,19 @@ public class DeviceUpReqMessage extends BasicMessage {
 	public void setSinglePackageLength(short singlePackageLength) {
 		this.singlePackageLength = singlePackageLength;
 	}
-	public byte getDeviceMark() {
+	public short getDeviceMark() {
 		return deviceMark;
 	}
 	public void setDeviceMark(byte deviceMark) {
 		this.deviceMark = deviceMark;
 	}
-	public byte getPackageMark() {
+	public short getPackageMark() {
 		return packageMark;
 	}
 	public void setPackageMark(byte packageMark) {
 		this.packageMark = packageMark;
 	}
-	public byte getVersionMark() {
+	public short getVersionMark() {
 		return versionMark;
 	}
 	public void setVersionMark(byte versionMark) {
