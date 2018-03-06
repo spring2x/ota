@@ -1,22 +1,26 @@
 package com.iot.oauth.service;
 
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson.JSONObject;
 import com.iot.oauth.bean.PlatformProperty;
 import com.iot.oauth.bean.Terminal;
-import com.iot.oauth.bean.Token;
 import com.iot.oauth.mapper.PlatformTokenMapper;
 import com.iot.oauth.mapper.TerminalMapper;
 import com.iot.oauth.mapper.TokenMapper;
+import com.iot.oauth.util.DateUtil;
 import com.iot.oauth.util.ExceptionUtil;
+import com.iot.oauth.util.TokenUtil;
+
+import io.jsonwebtoken.Claims;
 
 @Service
 public class BusinessPlatformService {
@@ -34,6 +38,9 @@ public class BusinessPlatformService {
 	
 	@Autowired
 	PlatformProperty platformProperty;
+	
+	@Autowired
+	private ValueOperations<String, Object> valueOperations;
 	
 	/**
 	 * 业务平台鉴权服务
@@ -72,30 +79,29 @@ public class BusinessPlatformService {
 	 * @param result
 	 * @throws Exception
 	 */
-	@Transactional(rollbackFor=Exception.class)
 	public void addPlatformToken(JSONObject params, JSONObject result) throws Exception{
 		
-		List<Map<String, Object>> platformtoken = platformTokenMapper.getPlatformToken(params);
-		if (platformtoken != null && !platformtoken.isEmpty()) {
-			String orgToken = (String) platformtoken.get(0).get("token");
-			JSONObject param = new JSONObject();
-			param.put("org_token", orgToken);
-			updatePlatformToken(param, result);
-			return;
+		String authUrl = params.getString("authent_url");
+		String uuid = (String) valueOperations.get(authUrl);
+		if (uuid != null) {
+			//将原来未过期的数据移除，防止数据积压
+			valueOperations.getOperations().delete(uuid);
+			valueOperations.getOperations().delete(authUrl);
 		}
 		
-		params.put("token_type", 2);
-		int expireTime = platformProperty.getPlatformTokenExpiredTime();
-		try {
-			Token token = tokenService.createAccessToken(params, expireTime);
-			params.put("token_id", token.getId());
-			platformTokenMapper.addPlatformToken(params);
-			result.put("token", token.getUuid());
-			result.put("token_expireTime", token.getExpireTime());
-		} catch (Exception e) {
-			ExceptionUtil.printExceptionToLog(logger, e);
-			throw e;
-		}
+		
+		JSONObject payload = new JSONObject();
+		long ttlMillis = platformProperty.getPlatformTokenExpiredTime() * 60 * 1000;
+		String token = TokenUtil.createToken(payload, ttlMillis, authUrl);
+		Claims claims = TokenUtil.parseJWT(token, new JSONObject());
+		uuid = claims.getId();
+		String expired = DateUtil.DateFormat(claims.getExpiration().getTime());
+		
+		valueOperations.set(authUrl, uuid, platformProperty.getPlatformTokenExpiredTime(), TimeUnit.MINUTES);
+		valueOperations.set(uuid, token, platformProperty.getPlatformTokenExpiredTime(), TimeUnit.MINUTES);
+		
+		result.put("token", uuid);
+		result.put("token_expireTime", expired);
 	}
 	
 	/**
@@ -104,25 +110,36 @@ public class BusinessPlatformService {
 	 * @param result
 	 * @throws Exception
 	 */
-	@Transactional(rollbackFor=Exception.class)
 	public void updatePlatformToken(JSONObject params, JSONObject result) throws Exception{
 		if (!params.containsKey("org_token") || null == params.get("org_token") || "".equals("org_token")) {
 			result.put("code", "0001");
 			result.put("message", "请求参数不完整");
 			return;
 		}
-		
-		params.put("uuid", params.get("org_token"));
-		List<Token> tokens = tokenMapper.getTokens(params);
-		if (tokens == null || tokens.isEmpty()) {
+		Object orgUUID = params.get("org_token");
+		String orgToken = (String) valueOperations.get(orgUUID);
+		if (orgToken != null) {
+			Claims orgClaims = TokenUtil.parseJWT(orgToken, result);
+			String authUrl = orgClaims.getSubject();
+			valueOperations.getOperations().delete(orgClaims.getId());
+			valueOperations.getOperations().delete(authUrl);
+			
+			JSONObject payload = new JSONObject();
+			long ttlMillis = platformProperty.getPlatformTokenExpiredTime() * 60 * 1000;
+			String token = TokenUtil.createToken(payload, ttlMillis, authUrl);
+			Claims claims = TokenUtil.parseJWT(token, new JSONObject());
+			String uuid = claims.getId();
+			String expired = DateUtil.DateFormat(claims.getExpiration().getTime());
+			
+			valueOperations.set(authUrl, uuid, platformProperty.getPlatformTokenExpiredTime(), TimeUnit.MINUTES);
+			valueOperations.set(uuid, token, platformProperty.getPlatformTokenExpiredTime(), TimeUnit.MINUTES);
+			
+			result.put("token", uuid);
+			result.put("token_expireTime", expired);
+		}else {
 			result.put("code", "0001");
 			result.put("message", "token不存在");
 			return;
 		}
-		
-		int expireTime = platformProperty.getPlatformTokenExpiredTime();
-		tokenService.updateToken(params, expireTime);
-		result.put("token", params.get("uuid"));
-		result.put("token_expireTime", params.get("expireTime"));
 	}
 }
