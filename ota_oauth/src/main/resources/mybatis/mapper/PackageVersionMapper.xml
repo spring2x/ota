@@ -75,6 +75,31 @@
 			</if>
 	</select>
 	
+	
+	<select id="getVersionInfo" parameterType="packageVersion" resultType="map">
+		SELECT 
+			t.id terminal_id,
+			t.`type` terminal_type,
+			t.`introduce` terminal_introduce,
+			p.`id` package_id,
+			p.`package_name` package_name,
+			p.`introduce` package_introduce,
+			pv.`id` package_version_id,
+			pv.`package_version` package_version,
+			pv.`introduce` package_version_introduce 
+		FROM 
+			terminal t,
+			package p,
+			package_version pv
+		WHERE
+			1=1
+			AND p.terminal_id=t.id
+			AND pv.package_id=p.id
+			<if test="packageVersion != null">
+				AND pv.`package_version`=#{packageVersion}
+			</if>
+	</select>
+	
 	<update id="updatePackageVersionInfo" parameterType="com.alibaba.fastjson.JSONObject">
 		update
 			package_version

@@ -16,6 +16,7 @@ import com.iot.oauth.bean.Token;
 import com.iot.oauth.mapper.PlatformTokenMapper;
 import com.iot.oauth.mapper.TerminalMapper;
 import com.iot.oauth.mapper.TokenMapper;
+import com.iot.oauth.util.ExceptionUtil;
 
 @Service
 public class BusinessPlatformService {
@@ -60,7 +61,7 @@ public class BusinessPlatformService {
 			}
 			params.put("terminal_id", terminals.get(0).getId());
 		} catch (Exception e) {
-			logger.error("platform autent err   " + e.getMessage());
+			ExceptionUtil.printExceptionToLog(logger, e);
 			throw e;
 		}
 	}
@@ -92,7 +93,7 @@ public class BusinessPlatformService {
 			result.put("token", token.getUuid());
 			result.put("token_expireTime", token.getExpireTime());
 		} catch (Exception e) {
-			logger.error("add platform token err   " + e.getMessage());
+			ExceptionUtil.printExceptionToLog(logger, e);
 			throw e;
 		}
 	}

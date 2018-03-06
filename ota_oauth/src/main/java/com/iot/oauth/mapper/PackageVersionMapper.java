@@ -18,4 +18,6 @@ public interface PackageVersionMapper {
 	List<Map<String, Object>> getPackageVersionInfos(JSONObject params);
 	
 	void updatePackageVersionInfo(JSONObject params);
+	
+	List<Map<String, Object>> getVersionInfo(PackageVersion version);
 }
