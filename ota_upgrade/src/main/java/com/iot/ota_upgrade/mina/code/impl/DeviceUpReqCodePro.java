@@ -60,6 +60,7 @@ public class DeviceUpReqCodePro extends BasicCodeProcessor {
 	@Override
 	public DeviceUpReqMessage decode(BasicMessage basicMessage, IoBuffer buffer) throws Exception {
 		DeviceUpReqMessage deviceUpReqMessage = null;
+		int bodyLength = 0;
 		try {
 			//授权码
 			String authCode = MinaUtil.getStringFromIoBuffer(buffer, DeviceUpReqConstant.UPGRADE_AUTH_CODE_LENTH, DeviceUpReqConstant.CHARSET);
@@ -87,7 +88,13 @@ public class DeviceUpReqCodePro extends BasicCodeProcessor {
 			deviceUpReqMessage
 					.setCheckSumResult(basicMessage.getChecksum() == calculateCheckSum(deviceUpReqMessage) ? true : false);
 			//logger.debug(deviceUpReqMessage.toString());
+			bodyLength += authCode.length() + 2 + 2 + 2 + 2 + 1 + 1 + 1 + upMarkLenth;
+			if (bodyLength > basicMessage.messageLength) {
+				buffer.buf().position(3);
+				deviceUpReqMessage = oldDecode(basicMessage, buffer);
+			}
 		} catch (Exception e) {
+			buffer.buf().position(3);
 			deviceUpReqMessage = oldDecode(basicMessage, buffer);
 		}
 		return deviceUpReqMessage;

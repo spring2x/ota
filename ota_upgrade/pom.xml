@@ -128,6 +128,21 @@
 		    <artifactId>spring-boot-starter-aop</artifactId>
 		</dependency>
 		<!-- spring cloud config end -->
+		
+		<!-- JWT 生成token配置开始 -->
+		<dependency>
+		    <groupId>io.jsonwebtoken</groupId>
+		    <artifactId>jjwt</artifactId>
+		    <version>0.9.0</version>
+		</dependency>
+		<!-- JWT 生成token配置结束 -->
+		
+		<!-- redis配置开始 -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+		<!-- redis配置结束 -->
 	</dependencies>
 
 	<dependencyManagement>

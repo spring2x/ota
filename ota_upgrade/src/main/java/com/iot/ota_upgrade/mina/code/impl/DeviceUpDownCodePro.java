@@ -41,6 +41,7 @@ public class DeviceUpDownCodePro extends BasicCodeProcessor {
 		//logger.debug("*****************************  " + "message decode start...");
 		
 		DeviceUpDownMessage deviceUpDownMessage = null;
+		int bodyLength = 0;
 		try {
 			short deviceTypeMark = buffer.getShort();
 			short packageMark = buffer.getShort();
@@ -55,7 +56,13 @@ public class DeviceUpDownCodePro extends BasicCodeProcessor {
 							.setCheckSumResult(basicMessage.getChecksum() == calculateCheckSum(deviceUpDownMessage) ? true : false);
 			//logger.debug("*****************************  " + "message decode end");
 			//logger.debug(deviceUpDownMessage.toString());
+			bodyLength += 2 + 2 + 2 + 2;
+			if (bodyLength > basicMessage.messageLength) {
+				buffer.buf().position(3);
+				deviceUpDownMessage = (DeviceUpDownMessage) oldDecode(basicMessage, buffer);
+			}
 		} catch (Exception e) {
+			buffer.buf().position(3);
 			deviceUpDownMessage = (DeviceUpDownMessage) oldDecode(basicMessage, buffer);
 		}
 		

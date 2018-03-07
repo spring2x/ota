@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.util.ConcurrentHashSet;
+import org.springframework.data.redis.core.ValueOperations;
 
 import com.alibaba.fastjson.JSONObject;
 import com.iot.ota_upgrade.bean.UpgradeProperty;
@@ -33,6 +34,8 @@ public class DeviceUpReqService extends BasicDeviceActionService {
 	public static ConcurrentHashMap<String, Map<Integer, String>> fileValideCodeMap = new ConcurrentHashMap<>();
 
 	public static ConcurrentHashSet<String> fileMarkSet = new ConcurrentHashSet<>();
+	
+	private ValueOperations<String, Object> valueOperations;
 
 	@Override
 	public void process(IoSession session, BasicMessage basicMessage, JSONObject result) throws Exception {
@@ -40,11 +43,21 @@ public class DeviceUpReqService extends BasicDeviceActionService {
 		String authCode = message.getAuthCode();
 		String upMark = message.getUpMark();
 
-		JSONObject params = new JSONObject();
+		//JSONObject params = new JSONObject();
 
 		// 默认的终端授权码与设备发送的授权码不一致的情况
 		if (!upgradeProperty.getDefaultTerminalValideCode().equals(authCode)) {
-			params.put("uuid", authCode);
+			String uuid = (String) valueOperations.get(upMark);
+			String token = (String) valueOperations.get(authCode);
+			if (token == null || token.equals("") || !authCode.equals(uuid)) {
+				result.clear();
+				result.put(ExceptionMessageConstant.MESSAGE_TYPE_KEY, ExceptionMessageConstant.MESSAGE_TYPE);
+				result.put(ExceptionMessageConstant.ERR_MESSAGE_ID_MARK, DeviceUpReqConstant.MESSAGE_TYPE);
+				result.put(ExceptionMessageConstant.ERR_MESSAGE_CODE_MARK, ExceptionMessageConstant.VALIDE_FAIL);
+				return;
+			}
+			
+			/*params.put("uuid", authCode);
 			params.put("mark", upMark);
 			try {
 				// logger.debug("******************************* " + "device
@@ -65,7 +78,7 @@ public class DeviceUpReqService extends BasicDeviceActionService {
 				}
 			} catch (Exception e) {
 				throw e;
-			}
+			}*/
 		}
 
 		short singlePackLength = message.getSinglePackageLength();
@@ -184,5 +197,13 @@ public class DeviceUpReqService extends BasicDeviceActionService {
 
 	public void setUpgradeProperty(UpgradeProperty upgradeProperty) {
 		this.upgradeProperty = upgradeProperty;
+	}
+
+	public ValueOperations<String, Object> getValueOperations() {
+		return valueOperations;
+	}
+
+	public void setValueOperations(ValueOperations<String, Object> valueOperations) {
+		this.valueOperations = valueOperations;
 	}
 }
