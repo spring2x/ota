@@ -1,69 +1,62 @@
 package com.iot.oauth.interceptor;
 
 import java.io.PrintWriter;
-import java.sql.Timestamp;
-import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-
 import com.alibaba.fastjson.JSONObject;
-import com.iot.oauth.bean.Token;
-import com.iot.oauth.mapper.TokenMapper;
 
 public class DeviceInterceptor implements HandlerInterceptor {
 	
-	TokenMapper tokenMapper;
+	private ValueOperations<String, Object> valueOperations;
 	
 	
-	public DeviceInterceptor(TokenMapper tokenMapper) {
-		this.tokenMapper = tokenMapper;
+	public DeviceInterceptor(ValueOperations<String, Object> valueOperations) {
+		this.valueOperations = valueOperations;
 	}
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
 		JSONObject result = new JSONObject();
-		String token = request.getHeader("token") == null ? request.getParameter("token") : request.getHeader("token");
-		if (token == null || "".equals(token)) {
-			response.setCharacterEncoding("utf-8");
-			PrintWriter writer = response.getWriter();
-			response.setStatus(401);
+		response.setCharacterEncoding("utf-8");
+		response.setHeader("Content-type", "text/html;charset=UTF-8");
+		PrintWriter writer = null;
+		String uuid = request.getHeader("token") == null ? request.getParameter("token") : request.getHeader("token");
+		if(StringUtils.isEmpty(uuid)) {
+			writer = response.getWriter();
 			result.put("code", "0001");
-			result.put("message", "token不能为空");
-			writer.write(result.toString());
-			writer.flush();
-			writer.close();
-			return false;
-		}
-		JSONObject param = new JSONObject();
-		param.put("uuid", request.getHeader("token") == null ? request.getParameter("token") : request.getHeader("token"));
-		List<Token> tokens = tokenMapper.getTokens(param);
-		
-		if (tokens == null || tokens.isEmpty()) {
-			response.setCharacterEncoding("utf-8");
-			PrintWriter writer = response.getWriter();
+			result.put("message", "未授权");
 			response.setStatus(401);
-			result.put("code", "0001");
-			result.put("message", "token无效");
-			writer.write(result.toString());
+			writer.write(result.toJSONString());
 			writer.flush();
 			writer.close();
 			return false;
 		}
 		
-		Token token1  = tokens.get(0);
-		Timestamp expireTime = token1.getExpireTime();
-		if (expireTime.getTime() < System.currentTimeMillis()) {
-			response.setCharacterEncoding("utf-8");
-			PrintWriter writer = response.getWriter();
-			response.setStatus(401);
+		try {
+			String token = (String) valueOperations.get(uuid);
+			if (token == null) {
+				writer = response.getWriter();
+				result.put("code", "0001");
+				result.put("message", "未授权或授权过期");
+				response.setStatus(401);
+				writer.write(result.toJSONString());
+				writer.flush();
+				writer.close();
+				return false;
+			}
+		} catch (Exception e) {
 			result.put("code", "0001");
-			result.put("message", "业务平台授权已过期，请重新获取权限");
-			writer.write(result.toString());
+			result.put("message", "服务器错误");
+			writer = response.getWriter();
+			response.setStatus(500);
+			writer.write(result.toJSONString());
 			writer.flush();
 			writer.close();
 			return false;

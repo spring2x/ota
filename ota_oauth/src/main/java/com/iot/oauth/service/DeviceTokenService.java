@@ -11,10 +11,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,10 @@ import com.iot.oauth.mapper.DeviceTokenMapper;
 import com.iot.oauth.mapper.PackageFileMapper;
 import com.iot.oauth.mapper.PackageVersionMapper;
 import com.iot.oauth.mapper.PlatformTokenMapper;
+import com.iot.oauth.util.DateUtil;
+import com.iot.oauth.util.TokenUtil;
+
+import io.jsonwebtoken.Claims;
 
 
 @Service("deviceTokenService")
@@ -44,6 +50,9 @@ public class DeviceTokenService {
 	
 	@Autowired
 	PackageVersionMapper packageVersionMapper;
+	
+	@Autowired
+	private ValueOperations<String, Object> valueOperations;
 	/**
 	 * 增加设备的token
 	 * @param params
@@ -60,7 +69,27 @@ public class DeviceTokenService {
 			return;
 		}
 		
-		String uuid = generateUUid(params);
+		String deviceMark = (String) params.get("mark");
+		String uuid = (String) valueOperations.get(deviceMark);
+		if (uuid != null) {
+			result.put("code", "0001");
+			result.put("message", "设备标识已存在");
+			return;
+		}
+		
+		JSONObject payload = new JSONObject();
+		payload.put("mark", deviceMark);	//设备标识（设备组编号或单个设备）
+		payload.put("type", params.get("type"));	//设备类型（设备组或者单个设备）
+		long ttlMillis = platformProperty.getDeviceTokenExpiredTime() * 60 * 1000;
+		String token = TokenUtil.createToken(payload, ttlMillis, deviceMark);
+		Claims claims = TokenUtil.parseJWT(token, new JSONObject());
+		uuid = claims.getId();
+		valueOperations.set(deviceMark, uuid, platformProperty.getDeviceTokenExpiredTime(), TimeUnit.MINUTES);
+		valueOperations.set(uuid, token, platformProperty.getDeviceTokenExpiredTime(), TimeUnit.MINUTES);
+		result.put("token", uuid);
+		result.put("expire_time", DateUtil.DateFormat(claims.getExpiration().getTime()));
+		
+		/*String uuid = generateUUid(params);
 		int expireTime = platformProperty.getDeviceTokenExpiredTime();
 		// 设置token过期时间
 		Calendar calendar = Calendar.getInstance();
@@ -86,7 +115,7 @@ public class DeviceTokenService {
 		} catch (Exception e) {
 			logger.error("add device token err   " + e.getMessage());
 			throw e;
-		}
+		}*/
 	}
 	
 	/**

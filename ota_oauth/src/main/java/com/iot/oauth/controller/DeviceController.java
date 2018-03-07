@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.alibaba.fastjson.JSONObject;
 import com.iot.oauth.bean.PlatformProperty;
 import com.iot.oauth.service.DeviceTokenService;
+import com.iot.oauth.util.ExceptionUtil;
 import com.iot.oauth.util.RequestUtil;
 
 /**
@@ -25,7 +26,7 @@ import com.iot.oauth.util.RequestUtil;
  *
  */
 @Controller
-@RequestMapping("/device")
+@RequestMapping("/ota/device")
 public class DeviceController extends BasicController{
 	
 	Logger log = LogManager.getLogger(DeviceController.class.getName());
@@ -44,7 +45,7 @@ public class DeviceController extends BasicController{
 			if ("device_authent".equals(cmd)) {
 				deviceTokenService.addDeviceToken(params, result);
 			}else if ("update_device_token".equals(cmd)) {
-				deviceTokenService.updateDeviceToken(params, result);
+				//deviceTokenService.updateDeviceToken(params, result);
 			}
 			
 			String serverIp = platformProperty.getOtaServerIp();
@@ -54,6 +55,7 @@ public class DeviceController extends BasicController{
 		} catch (Exception e) {
 			result.put("code", "0001");
 			result.put("message", "err");
+			ExceptionUtil.printExceptionToLog(log, e);
 		}
 		return result.toJSONString();
 	}
