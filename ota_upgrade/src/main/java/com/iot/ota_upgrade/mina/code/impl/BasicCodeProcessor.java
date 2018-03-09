@@ -16,7 +16,7 @@ public abstract class BasicCodeProcessor implements CodeProcessorInterf {
 	}
 
 	@Override
-	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) {
+	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws Exception{
 
 	}
 

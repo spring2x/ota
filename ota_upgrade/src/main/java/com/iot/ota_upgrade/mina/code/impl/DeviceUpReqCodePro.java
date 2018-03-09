@@ -133,7 +133,7 @@ public class DeviceUpReqCodePro extends BasicCodeProcessor {
 	}
 	
 	@Override
-	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) {
+	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws Exception{
 		JSONObject encodeMessage = (JSONObject)message;
 		
 		//buffer的容量

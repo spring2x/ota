@@ -10,5 +10,5 @@ public interface CodeProcessorInterf {
 	
 	BasicMessage decode(BasicMessage basicMessage, IoBuffer buffer) throws Exception;
 	
-	void encode(IoSession session, Object message, ProtocolEncoderOutput out);
+	void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws Exception;
 }

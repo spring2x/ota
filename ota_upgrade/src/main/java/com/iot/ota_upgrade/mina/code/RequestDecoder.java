@@ -12,6 +12,7 @@ import com.iot.ota_upgrade.constant.ExceptionMessageConstant;
 import com.iot.ota_upgrade.factory.MessageCodeFactory;
 import com.iot.ota_upgrade.message.BasicMessage;
 import com.iot.ota_upgrade.mina.code.interf.CodeProcessorInterf;
+import com.iot.ota_upgrade.util.ExceptionUtil;
 
 
 public class RequestDecoder extends CumulativeProtocolDecoder {
@@ -48,7 +49,7 @@ public class RequestDecoder extends CumulativeProtocolDecoder {
 			result.put(ExceptionMessageConstant.ERR_MESSAGE_ID_MARK, messageType);
 			result.put(ExceptionMessageConstant.ERR_MESSAGE_CODE_MARK, ExceptionMessageConstant.MESSAGE_FORMAR_ERR);
 			session.write(result);
-			logger.error("Request decode faild!!!  " + e.getMessage());
+			ExceptionUtil.printExceptionToLog(logger, e);
 			throw e;
 		}
 		return false;

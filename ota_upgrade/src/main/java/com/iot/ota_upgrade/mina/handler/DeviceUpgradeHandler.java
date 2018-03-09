@@ -96,7 +96,7 @@ public class DeviceUpgradeHandler extends IoHandlerAdapter implements Applicatio
 
 	@Override
 	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
-		logger.debug("session occured exception, so close it." + cause.getMessage());
+		ExceptionUtil.printExceptionToLog(logger, new Exception(cause));
 		session.close(false);
 	}
 	

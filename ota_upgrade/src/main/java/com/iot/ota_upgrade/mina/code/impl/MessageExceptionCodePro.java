@@ -15,7 +15,7 @@ public class MessageExceptionCodePro extends BasicCodeProcessor {
 	Logger logger = LogManager.getLogger(MessageExceptionCodePro.class.getName());
 	
 	@Override
-	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) {
+	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws Exception{
 		JSONObject encodeMessage = (JSONObject)message;
 		
 		//buffer的容量
