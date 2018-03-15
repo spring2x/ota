@@ -20,9 +20,9 @@
         </Console>
 
 		<!--文件会打印出所有信息，这个log每次运行程序会自动清空，由append属性决定，这个也挺有用的，适合临时测试用 -->
-		<File name="file" fileName="../logs/ota_web_log/ota_web.log" append="true">
+		<!-- <File name="file" fileName="../logs/ota_web_log/ota_web.log" append="true">
 			<PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %class{36} %L %M - %msg%xEx%n" />
-		</File>
+		</File> -->
 
 		<RollingFile name="RollingFileDebug" fileName="../logs/ota_web_log/debug.log" 
 					filePattern="../logs/ota_web_log/$${date:yyyy-MM}/debug-%d{yyyy-MM-dd}-%i.log">
