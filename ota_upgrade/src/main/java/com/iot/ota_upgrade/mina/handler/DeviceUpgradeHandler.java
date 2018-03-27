@@ -45,7 +45,7 @@ public class DeviceUpgradeHandler extends IoHandlerAdapter implements Applicatio
 		
 		//未经过授权的设备，直接关闭session
 		if (basicMessage.messageType != DeviceUpReqConstant.MESSAGE_TYPE && !session.containsAttribute("remote_addr")) {
-			session.close(true);
+			session.closeOnFlush();
 			return;
 		}
 		JSONObject result = new JSONObject();
@@ -60,7 +60,7 @@ public class DeviceUpgradeHandler extends IoHandlerAdapter implements Applicatio
 				//logger.debug(result.toJSONString());
 				session.write(result);
 				if (result.containsKey("ERR_MESSAGE_CODE_MARK") && result.getIntValue("ERR_MESSAGE_CODE_MARK") == ExceptionMessageConstant.VALIDE_FAIL) {
-					session.close(false);
+					session.closeOnFlush();
 				}
 			} catch (Exception e) {
 				ExceptionUtil.printExceptionToLog(logger, e);
@@ -77,7 +77,7 @@ public class DeviceUpgradeHandler extends IoHandlerAdapter implements Applicatio
 			result.put(ExceptionMessageConstant.ERR_MESSAGE_CODE_MARK, ExceptionMessageConstant.CHECK_SUM_ERR);
 			session.write(result);
 			if (DeviceUpReqConstant.MESSAGE_TYPE == basicMessage.messageType) {
-				session.close(false);
+				session.closeOnFlush();
 			}
 		}
 	}
@@ -85,19 +85,20 @@ public class DeviceUpgradeHandler extends IoHandlerAdapter implements Applicatio
 	@Override
 	public void sessionIdle(IoSession session, IdleStatus status) throws Exception {
 		logger.debug("session idle, so disconnecting......");
-		session.close(false);
+		session.closeOnFlush();
 	}
 	
 	@Override
 	public void sessionClosed(IoSession session) throws Exception {
-		super.sessionClosed(session);
+		//super.sessionClosed(session);
+		session.closeOnFlush();
 		RequestStatisticsUtil.currentRequestNum.getAndDecrement();
 	}
 
 	@Override
 	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
 		ExceptionUtil.printExceptionToLog(logger, new Exception(cause));
-		session.close(false);
+		session.closeOnFlush();
 	}
 	
 	@Override
