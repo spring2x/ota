@@ -7,6 +7,7 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +43,9 @@ public class TerminalService {
 	
 	@Autowired
 	TerminalProperty terminalProperty;
+	
+	@Autowired
+	RedisTemplate<String, Object> redisTemplate;
 	
 	
 	/**
@@ -364,6 +368,7 @@ public class TerminalService {
 			params.put("path", params.get("terminal_id"));
 			FileUtil.deleteFolder(packageFileMapper, terminalProperty.getUpgradePackagePath() + File.separator + params.getString("path"));
 			
+			redisTemplate.delete(redisTemplate.keys(params.getString("path") + "_*"));
 		} catch (Exception e) {
 			throw e;
 		}

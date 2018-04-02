@@ -58,6 +58,7 @@ public class PackageFileController extends BasicController{
 				params.putAll(RequestUtil.getParams(request));
 				packageFileService.saveFile(file, params, result);
 			} catch (Exception e) {
+				ExceptionUtil.printExceptionToLog(logger, e);
 				if (e instanceof IOException) {
 					result.put("code", "0001");
 					result.put("message", e.getMessage());
@@ -79,6 +80,7 @@ public class PackageFileController extends BasicController{
 			params.putAll(RequestUtil.getParams(request));
 			packageFileService.getPackageFileInfo(params, result);
 		} catch (Exception e) {
+			ExceptionUtil.printExceptionToLog(logger, e);
 			result.put("code", "0001");
 			result.put("message", "服务器错误");
 		}

@@ -11,7 +11,7 @@ public class TerminalProperty {
 	
 	@Value("${upgrade_package_path}")
 	private String upgradePackagePath;
-
+	
 	public String getFileDownloadPath() {
 		return fileDownloadPath;
 	}

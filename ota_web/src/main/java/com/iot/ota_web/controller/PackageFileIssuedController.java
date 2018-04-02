@@ -17,6 +17,7 @@ import org.apache.http.util.CharsetUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -24,21 +25,25 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson.JSONObject;
 import com.iot.ota_web.bean.TerminalProperty;
+import com.iot.ota_web.util.ExceptionUtil;
 import com.iot.ota_web.util.FileUtil;
 
 /**
  * 升级包文件下发到具体的升级服务器
- * @author liqiang
+ * @author tangliang
  *
  */
 @RestController
 @RequestMapping("/fileIssued")
 public class PackageFileIssuedController {
 	
-	private Logger logger = LogManager.getLogger(PackageFileIssuedController.class);
+	private static Logger logger = LogManager.getLogger(PackageFileIssuedController.class);
 	
 	@Autowired
 	TerminalProperty terminalProperty;
+	
+	@Autowired
+	RedisTemplate<String, Object> redisTemplate;
 
 	@RequestMapping(value="", produces="text/html;charset=UTF-8", method={RequestMethod.POST})
 	public String dealIssuedRequest(@RequestBody JSONObject params, HttpServletRequest request, HttpServletResponse response){
@@ -56,7 +61,7 @@ public class PackageFileIssuedController {
 	                .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
 	                .setCharset(CharsetUtils.get("UTF-8"));
 		} catch (Exception e) {
-			logger.error("PackageFileIssuedController error log: " + e);
+			ExceptionUtil.printExceptionToLog(logger, e);
 			result.put("code", "0001");
 			result.put("message", "server error!!!");
 			return result.toJSONString();
@@ -81,6 +86,7 @@ public class PackageFileIssuedController {
 			valideCodeJson.put("sha1Code", sha1Code);
 			reqEntity.addTextBody("valideCode", valideCodeJson.toJSONString());
 		} catch (Exception e1) {
+			ExceptionUtil.printExceptionToLog(logger, e1);
 			result.put("code", "0001");
 			result.put("message", "get file valide code error!!!");
 			return result.toJSONString();
@@ -97,12 +103,12 @@ public class PackageFileIssuedController {
 		try {
 			client.execute(httpPost);
 		} catch (ClientProtocolException e) {
-			logger.error(e);
+			ExceptionUtil.printExceptionToLog(logger, e);
 			result.put("code", "0001");
 			result.put("message", "server error!!!");
 			return result.toJSONString();
 		} catch (IOException e) {
-			logger.error(e);
+			ExceptionUtil.printExceptionToLog(logger, e);
 			result.put("code", "0001");
 			result.put("message", "server error!!!");
 			return result.toJSONString();
@@ -110,7 +116,7 @@ public class PackageFileIssuedController {
 			try {
 				client.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				ExceptionUtil.printExceptionToLog(logger, e);
 			}
 		}
 		return result.toJSONString();

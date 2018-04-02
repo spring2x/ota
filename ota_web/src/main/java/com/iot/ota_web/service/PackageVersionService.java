@@ -8,6 +8,7 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +48,9 @@ public class PackageVersionService {
 	
 	@Autowired
 	TerminalProperty terminalProperty;
+	
+	@Autowired
+	RedisTemplate<String, Object> redisTemplate;
 	
 	/**
 	 * 新增升级包版本。
@@ -145,8 +149,11 @@ public class PackageVersionService {
 			packageVersionMapper.deletePackageVersion(params);
 			
 			params.put("path", result.get("terminalId") + File.separator + params.get("package_id") + File.separator + params.get("version_id"));
+			String key = result.get("terminalId") + "_" + params.get("package_id") + "_" + params.get("version_id");
 			result.clear();
 			FileUtil.deleteFolder(packageFileMapper, terminalProperty.getUpgradePackagePath() + File.separator + params.getString("path"));
+			
+			redisTemplate.delete(key);
 			result.put("code", "0000");
 			result.put("message", "success");
 		} catch (Exception e) {

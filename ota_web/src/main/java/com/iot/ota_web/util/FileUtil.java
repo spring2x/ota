@@ -4,22 +4,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.web.multipart.MultipartFile;
 import com.iot.ota_web.mapper.PackageFileMapper;
 
 public class FileUtil {
-	
-	private static Logger logger = LogManager.getLogger(FileUtil.class.getName());
 	
 	protected static char hexDigits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9','a', 'b', 'c', 'd', 'e', 'f' };
 	
@@ -41,9 +36,10 @@ public class FileUtil {
 	 * @param deviceTypeMark
 	 * @param packageMark
 	 * @param packageVersionMark
+	 * @return 文件保存路径
 	 * @throws IOException 
 	 */
-	public static void savePackage(MultipartFile file, String rootPath, String deviceTypeMark, String packageMark, String packageVersionMark) throws IOException{
+	public static String savePackage(MultipartFile file, String rootPath, String deviceTypeMark, String packageMark, String packageVersionMark) throws IOException{
 		File rootDirectory = new File(rootPath);
 		if (!rootDirectory.exists()) {
 			rootDirectory.mkdirs();
@@ -72,9 +68,10 @@ public class FileUtil {
 			FileUtils.copyInputStreamToFile(file.getInputStream(),
 					new File(versionDirectory.getPath() + File.separator + file.getOriginalFilename()));
 		} catch (IOException e) {
-			logger.error("write file to disk error!!!   " + e.getMessage());
 			throw e;
 		}
+		
+		return versionDirectory.getPath() + File.separator + file.getOriginalFilename();
 	}
 	
 	/**
@@ -149,24 +146,22 @@ public class FileUtil {
 			}
 			fileCRC32Code = Long.toHexString(crc32.getValue()).toUpperCase();
 		} catch (FileNotFoundException e) {
-			logger.error(e);
 			throw e;
 		} catch (IOException e) {
-			logger.error(e);
 			throw e;
 		} finally {
 			if (fileinputstream != null) {
 				try {
 					fileinputstream.close();
 				} catch (IOException e2) {
-					e2.printStackTrace();
+					throw e2;
 				}
 			}
 			if (checkedinputstream != null) {
 				try {
 					checkedinputstream.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+					throw e;
 				}
 			}
 		}
@@ -181,39 +176,17 @@ public class FileUtil {
 	 * @throws IOException
 	 */
 	public static String getFileMD5Code(File file) throws IOException {
-		FileInputStream in = null;
+		FileInputStream inputStream = null;
 		try {
-			in = new FileInputStream(file);
-			FileChannel ch = in.getChannel();
-			MappedByteBuffer byteBuffer = ch.map(FileChannel.MapMode.READ_ONLY, 0, file.length());
-			messagedigest.update(byteBuffer);
-			return bufferToHex(messagedigest.digest());
-		} catch (Exception e) {
-			logger.error(e);
+			inputStream = new FileInputStream(file);
+			return DigestUtils.md5Hex(inputStream);
+		} catch (IOException e) {
 			throw e;
 		}finally {
-			in.close();
+			if (inputStream != null) {
+				inputStream.close();
+			}
 		}
-	}
-
-	private static String bufferToHex(byte bytes[]) {
-		return bufferToHex(bytes, 0, bytes.length);
-	}
-
-	private static String bufferToHex(byte bytes[], int m, int n) {
-		StringBuffer stringbuffer = new StringBuffer(2 * n);
-		int k = m + n;
-		for (int l = m; l < k; l++) {
-			appendHexPair(bytes[l], stringbuffer);
-		}
-		return stringbuffer.toString();
-	}
-
-	private static void appendHexPair(byte bt, StringBuffer stringbuffer) {
-		char c0 = hexDigits[(bt & 0xf0) >> 4];
-		char c1 = hexDigits[bt & 0xf];
-		stringbuffer.append(c0);
-		stringbuffer.append(c1);
 	}
 	
 	/**
@@ -224,21 +197,48 @@ public class FileUtil {
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
 	 */
-	public static String getFileSHA1Code(File file) throws OutOfMemoryError, IOException, NoSuchAlgorithmException {
-		messagedigest = MessageDigest.getInstance("SHA-1");
-		FileInputStream in = null;
+	public static String getFileSHA1Code(File file) throws IOException{
+		FileInputStream inputStream = null;
 		try {
-			in = new FileInputStream(file);
-			FileChannel ch = in.getChannel();
-			MappedByteBuffer byteBuffer = ch.map(FileChannel.MapMode.READ_ONLY, 0, file.length());
-			messagedigest.update(byteBuffer);
-			return bufferToHex(messagedigest.digest());
-		} catch (Exception e) {
-			logger.error(e);
+			inputStream = new FileInputStream(file);
+			return DigestUtils.sha1Hex(inputStream);
+		} catch (IOException e) {
 			throw e;
 		}finally {
-			in.close();
+			if (inputStream != null) {
+				inputStream.close();
+			}
 		}
 		
+	}
+	
+	/**
+	 * 获取文件的字节数据
+	 * @param file 文件不能超过2G
+	 * @return
+	 * @throws Exception 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static byte[] getFileBytes(File file) throws Exception{
+		//文件大小不能超过2G
+		byte[] fileBytes = new byte[(int) file.length()];
+		
+		FileInputStream fileInputStream = null;
+		try {
+			fileInputStream = new FileInputStream(file);
+			fileInputStream.read(fileBytes);
+		} catch (Exception e) {
+			throw e;
+		}finally {
+			if (fileInputStream != null) {
+				try {
+					fileInputStream.close();
+				} catch (IOException e) {
+					throw e;
+				}
+			}
+		}
+		return fileBytes;
 	}
 }

@@ -1,5 +1,6 @@
 package com.iot.ota_web.service;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +18,7 @@ import com.iot.ota_web.bean.PackageFile;
 import com.iot.ota_web.bean.TerminalProperty;
 import com.iot.ota_web.mapper.PackageFileMapper;
 import com.iot.ota_web.mapper.UserTerminalCompetenceMapper;
+import com.iot.ota_web.util.ExceptionUtil;
 import com.iot.ota_web.util.FileUtil;
 
 @Service
@@ -30,6 +32,9 @@ public class PackageFileService {
 	
 	@Autowired
 	TerminalProperty terminalProperty;
+	
+	@Autowired
+	FileCacheService fileCacheService;
 	
 	@Transactional(rollbackFor=Exception.class)
 	public void saveFile(MultipartFile file, Map<String, Object> params, JSONObject result) throws Exception {
@@ -74,10 +79,22 @@ public class PackageFileService {
 				return;
 			}
 			
-			FileUtil.savePackage(file, rootPath, params.get("terminal_id").toString(), 
+			String filePath = FileUtil.savePackage(file, rootPath, params.get("terminal_id").toString(), 
 					params.get("package_id").toString(), params.get("package_version_id").toString());
+			
+			File cacheFile = new File(filePath);
+			String key = params.get("terminal_id").toString() + "_" + params.get("package_id").toString() + "_" + params.get("package_version_id").toString();
+			try {
+				fileCacheService.ayncCacheProcess(key, cacheFile);
+			} catch (Exception e) {
+				ExceptionUtil.printExceptionToLog(logger, e);
+				try {
+					fileCacheService.removeFileFromRedis(key);
+				} catch (Exception e1) {
+					ExceptionUtil.printExceptionToLog(logger, e1);
+				}
+			}
 		} catch (Exception e) {
-			logger.error("save package file error!!!  " + e.getMessage());
 			throw e;
 		}
 	}
@@ -88,7 +105,7 @@ public class PackageFileService {
 	 * @param result
 	 */
 	@Transactional(readOnly = true)
-	public void getPackageFileInfo(Map<String, Object> params, JSONObject result){
+	public void getPackageFileInfo(Map<String, Object> params, JSONObject result) throws Exception{
 		JSONObject packageFilesObject = new JSONObject();
 		result.put("packageFiles", packageFilesObject);
 		JSONArray packageFileArray = new JSONArray();
@@ -106,7 +123,7 @@ public class PackageFileService {
 				}
 			}
 		} catch (Exception e) {
-			logger.error("get package file info err" + e.getMessage());
+			throw e;
 		}
 		
 	}
