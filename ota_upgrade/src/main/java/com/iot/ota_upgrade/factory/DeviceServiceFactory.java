@@ -1,6 +1,6 @@
 package com.iot.ota_upgrade.factory;
 
-import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import com.iot.ota_upgrade.bean.UpgradeProperty;
 import com.iot.ota_upgrade.mina.service.impl.DeviceUpDownService;
@@ -14,7 +14,7 @@ public class DeviceServiceFactory {
 	private DeviceTokenService deviceTokenService;
 	private UpgradeProperty upgradeProperty;
 	private InitPackageFileService initPackageFileService;
-	private ValueOperations<String, Object> valueOperations;
+	private RedisTemplate<String, Object> redisTemplate;
 	
 	public DeviceActionServiceInterf getDeviceActionService(String messageType) {
 		if ("deviceUpReqService".equals(messageType)) {
@@ -22,20 +22,20 @@ public class DeviceServiceFactory {
 			deviceUpReqService.setDeviceTokenService(deviceTokenService);
 			deviceUpReqService.setUpgradeProperty(upgradeProperty);
 			deviceUpReqService.setInitPackageFileService(initPackageFileService);
-			deviceUpReqService.setValueOperations(valueOperations);
+			deviceUpReqService.setRedisTemplate(redisTemplate);
 			return deviceUpReqService;
 		}else if ("deviceUpDownService".equals(messageType)) {
-			return new DeviceUpDownService(upgradeProperty);
+			return new DeviceUpDownService(upgradeProperty, redisTemplate);
 		}
 		return null;
 	}
 
-	public DeviceServiceFactory(DeviceTokenService deviceTokenService, UpgradeProperty upgradeProperty, InitPackageFileService initPackageFileService, ValueOperations<String, Object> valueOperations) {
+	public DeviceServiceFactory(DeviceTokenService deviceTokenService, UpgradeProperty upgradeProperty, InitPackageFileService initPackageFileService, RedisTemplate<String, Object> redisTemplate) {
 		super();
 		this.deviceTokenService = deviceTokenService;
 		this.upgradeProperty = upgradeProperty;
 		this.initPackageFileService = initPackageFileService;
-		this.valueOperations = valueOperations;
+		this.redisTemplate = redisTemplate;
 	}
 
 	public DeviceTokenService getDeviceTokenService() {

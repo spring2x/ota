@@ -1,17 +1,12 @@
 package com.iot.ota_upgrade.mina.service.impl;
 
 import java.io.File;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.apache.mina.core.session.IoSession;
-import org.apache.mina.util.ConcurrentHashSet;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-
 import com.alibaba.fastjson.JSONObject;
 import com.iot.ota_upgrade.bean.UpgradeProperty;
+import com.iot.ota_upgrade.bean.ValideMarkEnum;
 import com.iot.ota_upgrade.constant.DeviceUpReqConstant;
 import com.iot.ota_upgrade.constant.ExceptionMessageConstant;
 import com.iot.ota_upgrade.message.BasicMessage;
@@ -19,7 +14,7 @@ import com.iot.ota_upgrade.message.DeviceUpReqMessage;
 import com.iot.ota_upgrade.service.DeviceTokenService;
 import com.iot.ota_upgrade.service.InitPackageFileService;
 import com.iot.ota_upgrade.util.ByteUtil;
-import com.iot.ota_upgrade.util.FileUtil;
+import com.iot.ota_upgrade.util.FileCacheUtil;
 
 public class DeviceUpReqService extends BasicDeviceActionService {
 
@@ -29,13 +24,8 @@ public class DeviceUpReqService extends BasicDeviceActionService {
 
 	UpgradeProperty upgradeProperty;
 
-	private Logger logger = LogManager.getLogger(DeviceUpReqService.class.getName());
-
-	public static ConcurrentHashMap<String, Map<Integer, String>> fileValideCodeMap = new ConcurrentHashMap<>();
-
-	public static ConcurrentHashSet<String> fileMarkSet = new ConcurrentHashSet<>();
 	
-	private ValueOperations<String, Object> valueOperations;
+	private RedisTemplate<String, Object> redisTemplate;
 
 	@Override
 	public void process(IoSession session, BasicMessage basicMessage, JSONObject result) throws Exception {
@@ -43,10 +33,9 @@ public class DeviceUpReqService extends BasicDeviceActionService {
 		String authCode = message.getAuthCode();
 		String upMark = message.getUpMark();
 
-		//JSONObject params = new JSONObject();
-
 		// 默认的终端授权码与设备发送的授权码不一致的情况
 		if (!upgradeProperty.getDefaultTerminalValideCode().equals(authCode)) {
+			ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
 			String uuid = (String) valueOperations.get(upMark);
 			String token = (String) valueOperations.get(authCode);
 			if (token == null || token.equals("") || !authCode.equals(uuid)) {
@@ -56,74 +45,38 @@ public class DeviceUpReqService extends BasicDeviceActionService {
 				result.put(ExceptionMessageConstant.ERR_MESSAGE_CODE_MARK, ExceptionMessageConstant.VALIDE_FAIL);
 				return;
 			}
-			
-			/*params.put("uuid", authCode);
-			params.put("mark", upMark);
-			try {
-				// logger.debug("******************************* " + "device
-				// token valid start....");
-				// logger.debug("******************************* " + "device
-				// token valid param: " + params.toJSONString());
-				boolean validResult = deviceTokenService.validDeviceToken(params, result);
-				// logger.debug("******************************* " + "device
-				// token valid end");
-				// logger.debug("******************************* " + "device
-				// token valid result: " + validResult);
-				if (!validResult) {
-					result.clear();
-					result.put(ExceptionMessageConstant.MESSAGE_TYPE_KEY, ExceptionMessageConstant.MESSAGE_TYPE);
-					result.put(ExceptionMessageConstant.ERR_MESSAGE_ID_MARK, DeviceUpReqConstant.MESSAGE_TYPE);
-					result.put(ExceptionMessageConstant.ERR_MESSAGE_CODE_MARK, ExceptionMessageConstant.VALIDE_FAIL);
-					return;
-				}
-			} catch (Exception e) {
-				throw e;
-			}*/
 		}
 
 		short singlePackLength = message.getSinglePackageLength();
 		short deviceMark = message.getDeviceMark();
 		short packageMark = message.getPackageMark();
 		short versionMark = message.getVersionMark();
-		String fileMark = deviceMark + File.separator + packageMark + File.separator + versionMark;
-
-		if (!fileValideCodeMap.containsKey(fileMark)) {
-			synchronized (fileValideCodeMap) {
-				//int waitTime = upgradeProperty.getFileInitTestNum() * upgradeProperty.getFileInitTestInterval();
-				if (!fileValideCodeMap.containsKey(fileMark) && !fileMarkSet.contains(fileMark)) {
-					JSONObject body = new JSONObject();
-					body.put("terminal", deviceMark);
-					body.put("package", packageMark);
-					body.put("version", versionMark);
-					logger.info(fileMark + "\t" + "start inted");
-					JSONObject initResult = initPackageFileService.initDownLoadFile(body);
-					if ("0001".equals(initResult.get("code"))) {
-						logger.error(initResult.get("message"));
-					} else {
-						fileMarkSet.add(fileMark);
-						fileValideCodeMap.wait();
-					}
-				} else if (!fileValideCodeMap.containsKey(fileMark) && fileMarkSet.contains(fileMark)) {
-					fileValideCodeMap.wait();
+		
+		String key = deviceMark + "_" + packageMark + "_" + versionMark;
+		if (!redisTemplate.hasKey(key)) {
+			Exception exception = new Exception("request file-[" + key + "] can not be init");
+			throw exception;
+		}
+		
+		//是否需要把文件数据缓存到本地
+		if (!FileCacheUtil.fileCacheLocalMap.containsKey(key) && !FileCacheUtil.fileCacheFlagMap.containsKey(key)) {
+			synchronized(FileCacheUtil.fileCacheLocalMap){
+				if (!FileCacheUtil.fileCacheLocalMap.containsKey(key) && !FileCacheUtil.fileCacheFlagMap.containsKey(key)) {
+					FileCacheUtil.cacheFileToLocal(redisTemplate, key, upgradeProperty.getSinglePackageLenthUtil());
 				}
 			}
 		}
-
-		if (!fileValideCodeMap.containsKey(fileMark)) {
-			//InitDownLoadFileSchedule.fileMarkSet.remove(fileMark);
-			logger.error("request file can not be init  " + fileMark);
-			throw new Exception("request file can not be init  " + fileMark);
-		}
+		
+		File downLoadFile = new File((String) redisTemplate.opsForHash().get(key, "filePath"));
 
 		// 文件校验方式
 		int validMark = message.getValidMark();
-
-		String upgradePackageValidCode = fileValideCodeMap.get(fileMark).get(validMark);
+		String upgradePackageValidCode = (String) redisTemplate.opsForHash().get(key, String.valueOf(ValideMarkEnum.values()[validMark - 1]));
 		// 消息体长度
 		byte messageLenth = (byte) (DeviceUpReqConstant.RESPONSE_PACKAGE_SIZE_LENTH
 				+ DeviceUpReqConstant.RESPONSE_SPLIT_PACKAGE_LENTH + upgradePackageValidCode.length());
 		// 升级包所占字节数
-		int packageSize = FileUtil.fileMap.get(fileMark).length;
+		int packageSize = (int) downLoadFile.length();
 
 		// 分包个数
 		short splitPackageNum = (short) (packageSize
@@ -199,11 +152,14 @@ public class DeviceUpReqService extends BasicDeviceActionService {
 		this.upgradeProperty = upgradeProperty;
 	}
 
-	public ValueOperations<String, Object> getValueOperations() {
-		return valueOperations;
+	public RedisTemplate<String, Object> getRedisTemplate() {
+		return redisTemplate;
 	}
 
-	public void setValueOperations(ValueOperations<String, Object> valueOperations) {
-		this.valueOperations = valueOperations;
+	public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
+		this.redisTemplate = redisTemplate;
+	}
+	public DeviceUpReqService() {
+		// TODO Auto-generated constructor stub
 	}
 }

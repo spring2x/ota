@@ -2,7 +2,7 @@ package com.iot.ota_upgrade.mina.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import com.iot.ota_upgrade.bean.UpgradeProperty;
 import com.iot.ota_upgrade.factory.DeviceServiceFactory;
@@ -14,8 +14,8 @@ import com.iot.ota_upgrade.service.InitPackageFileService;
 public class FactoryConfig {
 	@Bean
     public DeviceServiceFactory getDeviceServiceFactory(DeviceTokenService deviceTokenService, UpgradeProperty upgradeProperty, InitPackageFileService initPackageFileService
-    		, ValueOperations<String, Object> valueOperations){
-        return new DeviceServiceFactory(deviceTokenService, upgradeProperty, initPackageFileService, valueOperations);
+    		, RedisTemplate<String, Object> redisTemplate){
+        return new DeviceServiceFactory(deviceTokenService, upgradeProperty, initPackageFileService, redisTemplate);
     }
 	
 	@Bean(name="deviceUpReqService")
