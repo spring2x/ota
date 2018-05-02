@@ -95,6 +95,15 @@
 			1=1
 			AND p.terminal_id=t.id
 			AND pv.package_id=p.id
+			<if test="versionId != null">
+				AND pv.id=#{versionId}
+			</if>
+			<if test="packageId != null">
+				AND p.id=#{packageId}
+			</if>
+			<if test="terminalId != null">
+				AND t.id=#{terminalId}
+			</if>
 			<if test="packageVersion != null">
 				AND pv.`package_version`=#{packageVersion}
 			</if>

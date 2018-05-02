@@ -72,8 +72,12 @@ public class DeviceTokenService {
 		String deviceMark = (String) params.get("mark");
 		String uuid = (String) valueOperations.get(deviceMark);
 		if (uuid != null) {
-			result.put("code", "0001");
-			result.put("message", "设备标识已存在");
+			long expireSeconds = valueOperations.getOperations().getExpire(deviceMark);
+			Calendar calendar= Calendar.getInstance();
+			calendar.setTime(new Date());
+			calendar.add(Calendar.SECOND, (int) expireSeconds);
+			result.put("token", uuid);
+			result.put("expire_time", DateUtil.DateFormat(calendar.getTimeInMillis()));
 			return;
 		}
 		
@@ -84,9 +88,12 @@ public class DeviceTokenService {
 		String token = TokenUtil.createToken(payload, ttlMillis, deviceMark);
 		Claims claims = TokenUtil.parseJWT(token, new JSONObject());
 		uuid = claims.getId();
-		valueOperations.set(deviceMark, uuid, platformProperty.getDeviceTokenExpiredTime(), TimeUnit.MINUTES);
-		valueOperations.set(uuid, token, platformProperty.getDeviceTokenExpiredTime(), TimeUnit.MINUTES);
-		result.put("token", uuid);
+		params.put("uuid", uuid);
+		String claimsId = generateUUid(params);
+		claims.setId(claimsId);
+		valueOperations.set(deviceMark, claimsId, platformProperty.getDeviceTokenExpiredTime(), TimeUnit.MINUTES);
+		valueOperations.set(claimsId, token, platformProperty.getDeviceTokenExpiredTime(), TimeUnit.MINUTES);
+		result.put("token", claimsId);
 		result.put("expire_time", DateUtil.DateFormat(claims.getExpiration().getTime()));
 		
 		/*String uuid = generateUUid(params);
@@ -123,7 +130,7 @@ public class DeviceTokenService {
 	 * @param params
 	 * @param result
 	 * @throws Exception
-	 */
+	 *//*
 	public void updateDeviceToken(JSONObject params, JSONObject result) throws Exception{
 		if (!params.containsKey("org_token") || null == params.get("org_token") || "".equals(params.get("org_token"))) {
 			result.put("code", "0001");
@@ -157,7 +164,7 @@ public class DeviceTokenService {
 			logger.error("update token err   " + e.getMessage());
 			throw e;
 		}
-	}
+	}*/
 	
 	@Transactional(readOnly=true)
 	public void getNewVerson(Map<String, Object> params, JSONObject result){
