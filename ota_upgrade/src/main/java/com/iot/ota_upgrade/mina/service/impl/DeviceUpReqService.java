@@ -1,6 +1,7 @@
 package com.iot.ota_upgrade.mina.service.impl;
 
-import java.io.File;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.mina.core.session.IoSession;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -26,7 +27,7 @@ public class DeviceUpReqService extends BasicDeviceActionService {
 
 	
 	private RedisTemplate<String, Object> redisTemplate;
-
+	
 	@Override
 	public void process(IoSession session, BasicMessage basicMessage, JSONObject result) throws Exception {
 		DeviceUpReqMessage message = (DeviceUpReqMessage) basicMessage;
@@ -52,31 +53,42 @@ public class DeviceUpReqService extends BasicDeviceActionService {
 		short packageMark = message.getPackageMark();
 		short versionMark = message.getVersionMark();
 		
-		String key = deviceMark + "_" + packageMark + "_" + versionMark;
-		if (!redisTemplate.hasKey(key)) {
-			Exception exception = new Exception("request file-[" + key + "] can not be init");
-			throw exception;
-		}
+		//文件基本信息的key
+		String baseInfoKey = deviceMark + "_" + packageMark + "_" + versionMark;
+		//文件数据的key
+		String fileDataKey = baseInfoKey + "_data";
 		
-		//是否需要把文件数据缓存到本地
-		if (!FileCacheUtil.fileCacheLocalMap.containsKey(key) && !FileCacheUtil.fileCacheFlagMap.containsKey(key)) {
-			synchronized(FileCacheUtil.fileCacheLocalMap){
-				if (!FileCacheUtil.fileCacheLocalMap.containsKey(key) && !FileCacheUtil.fileCacheFlagMap.containsKey(key)) {
-					FileCacheUtil.cacheFileToLocal(redisTemplate, key, upgradeProperty.getSinglePackageLenthUtil());
+		//文件数据在java内存中过期时间为2个小时
+		redisTemplate.opsForValue().set(baseInfoKey + "_expireTool", "1", 120, TimeUnit.MINUTES);
+		
+		
+		// 是否需要把文件数据缓存到本地
+		if (!FileCacheUtil.fileCacheLocalMap.containsKey(fileDataKey)) {
+			synchronized (FileCacheUtil.fileCacheLocalMap) {
+				if (!FileCacheUtil.fileCacheLocalMap.containsKey(fileDataKey)) {
+					if (!redisTemplate.hasKey(fileDataKey)) {
+						JSONObject body = new JSONObject();
+						body.put("fileMark", baseInfoKey);
+						JSONObject initResult = initPackageFileService.initDownLoadFile(body);
+						if (!"0000".equals(initResult.get("code"))) {
+							String msg = initResult.getString("message");
+							Exception exception = new Exception(msg);
+							throw exception;
+						}
+					}
+					FileCacheUtil.cacheFileToLocal(redisTemplate, baseInfoKey, upgradeProperty.getSinglePackageLenthUtil());
 				}
 			}
 		}
 		
-		File downLoadFile = new File((String) redisTemplate.opsForHash().get(key, "filePath"));
-
 		// 文件校验方式
 		int validMark = message.getValidMark();
-		String upgradePackageValidCode = (String) redisTemplate.opsForHash().get(key, String.valueOf(ValideMarkEnum.values()[validMark - 1]));
+		String upgradePackageValidCode = (String) redisTemplate.opsForHash().get(baseInfoKey, String.valueOf(ValideMarkEnum.values()[validMark - 1]));
 		// 消息体长度
 		byte messageLenth = (byte) (DeviceUpReqConstant.RESPONSE_PACKAGE_SIZE_LENTH
 				+ DeviceUpReqConstant.RESPONSE_SPLIT_PACKAGE_LENTH + upgradePackageValidCode.length());
 		// 升级包所占字节数
-		int packageSize = (int) downLoadFile.length();
+		int packageSize = new Long((long) redisTemplate.opsForHash().get(baseInfoKey, "fileSize")).intValue();
 
 		// 分包个数
 		short splitPackageNum = (short) (packageSize

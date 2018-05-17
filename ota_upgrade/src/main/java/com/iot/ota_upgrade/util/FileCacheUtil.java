@@ -1,24 +1,22 @@
 package com.iot.ota_upgrade.util;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.data.redis.core.RedisTemplate;
 
 
 public class FileCacheUtil {
 	
+	private static Logger logger = LogManager.getLogger(FileCacheUtil.class);
+	
 	/**
 	 * 文件缓存到本地
 	 */
 	public static ConcurrentHashMap<String, byte[]> fileCacheLocalMap = new ConcurrentHashMap<>();
-	
-	/**
-	 * 文件是否需要缓存到本地,避免每个请求都需要计算文件大小
-	 */
-	public static ConcurrentHashMap<String, Boolean> fileCacheFlagMap = new ConcurrentHashMap<>();
 	
 	/**
 	 * 获取分片数据
@@ -36,7 +34,8 @@ public class FileCacheUtil {
 		if (fileCacheLocalMap.containsKey(key)) {
 			resultBytes = getFileBytesFromLocal(key, pos, len);
 		}else {
-			resultBytes = getFileBytesFromRedis(redisTemplate, key, pos, len, fileSplitSize);
+			//resultBytes = getFileBytesFromRedis(redisTemplate, key, pos, len, fileSplitSize);
+			throw new Exception("down load file-[" + key + "] time is to long, cache data is removed!!!");
 		}
 		
 		return resultBytes;
@@ -48,9 +47,13 @@ public class FileCacheUtil {
 	 * @param pos 开始读取的位置
 	 * @param len 读取的字节长度
 	 * @return
+	 * @throws Exception 
 	 */
-	public static byte[] getFileBytesFromLocal(String key, int pos, int len) {
+	public static byte[] getFileBytesFromLocal(String key, int pos, int len) throws Exception {
 		byte[] cachedData = fileCacheLocalMap.get(key);
+		if (cachedData == null) {
+			throw new Exception("down load file-[" + key + "] time is to long, cache data is removed!!!");
+		}
 		long fileLength = cachedData.length;
 		if (len + pos >= fileLength) {
 			len = (int) (fileLength - pos);
@@ -99,26 +102,20 @@ public class FileCacheUtil {
 	 * @param fileSplitSize
 	 */
 	public static void cacheFileToLocal(RedisTemplate< String, Object> redisTemplate, String key, int fileSplitSize){
-		if (fileCacheLocalMap.containsKey(key)) {
+		String fileDataKey = key + "_data";
+		if (fileCacheLocalMap.containsKey(fileDataKey)) {
 			return;
 		}
-		File file = new File((String) redisTemplate.opsForHash().get(key, "filePath"));
-		int fileSize = (int) file.length();
-		//默认超过10M的文件就不缓存。
-		int defaultMaxFileSize = 10 * 1024 * 1024;
-		if (fileSize > defaultMaxFileSize) {
-			fileCacheFlagMap.put(key, false);
-			return;
-		}
+		int fileSize = new Long((long) redisTemplate.opsForHash().get(key, "fileSize")).intValue();
 		int fileSplitNum = fileSize % fileSplitSize == 0 ? fileSize / fileSplitSize : fileSize / fileSplitSize + 1;
 		List<Object> fileSplitKeys = new ArrayList<>();
 		for(int keyIndex = 1; keyIndex <= fileSplitNum; keyIndex ++){
 			fileSplitKeys.add(String.valueOf(keyIndex));
 		}
 		
-		List<Object> fileSplitObjectList = redisTemplate.opsForHash().multiGet(key, fileSplitKeys);
+		List<Object> fileSplitObjectList = redisTemplate.opsForHash().multiGet(fileDataKey, fileSplitKeys);
 		byte[] resultBytes = covertObjectResultsToBytes(fileSplitObjectList, fileSplitSize);
-		fileCacheLocalMap.put(key, resultBytes);
+		fileCacheLocalMap.put(fileDataKey, resultBytes);
 	}
 	
 	/**

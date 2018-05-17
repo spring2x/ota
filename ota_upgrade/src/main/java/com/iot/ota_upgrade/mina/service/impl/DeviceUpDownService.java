@@ -27,7 +27,9 @@ public class DeviceUpDownService extends BasicDeviceActionService {
 		short packageNo = deviceUpDownMessage.getPackageNo();
 
 		String key = deviceTypeMark + "_" + packageMark + "_" + packageVersionMark;
-		if (!redisTemplate.hasKey(key)) {
+		//文件数据的key
+		String fileDataKey = key + "_data";
+		if (!FileCacheUtil.fileCacheLocalMap.containsKey(fileDataKey)) {
 			Exception exception = new Exception("download file  -[" + key + "] is not inited");
 			throw exception;
 		}
@@ -36,7 +38,7 @@ public class DeviceUpDownService extends BasicDeviceActionService {
 		int len = Integer.parseInt(session.getAttribute(DeviceUpReqConstant.SINGLE_PACKAGE_LENTH_KEY).toString())
 				* upgradeProperty.getSinglePackageLenthUtil();
 		int pos = (packageNo - 1) * len;
-		byte[] packageBytes = FileCacheUtil.getFileBytes(redisTemplate, key, pos, len,
+		byte[] packageBytes = FileCacheUtil.getFileBytes(redisTemplate, fileDataKey, pos, len,
 				upgradeProperty.getSinglePackageLenthUtil());
 		// 计算消息体的长度，升级包编号长度2+升级包的字节数
 		int messageLength = (DeviceUpDownConStant.PACKAGE_NO_LENTH + packageBytes.length);
