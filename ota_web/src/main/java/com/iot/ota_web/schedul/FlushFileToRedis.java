@@ -2,9 +2,7 @@ package com.iot.ota_web.schedul;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.logging.log4j.LogManager;
@@ -44,6 +42,7 @@ public class FlushFileToRedis {
 	/**
 	 * 每分钟检查一次，看是否有文件需要被缓存到redis中
 	 */
+	//@Scheduled(cron="0 0 2 * * ?")
 	@Scheduled(fixedRate=60000)
 	public void flush(){
 		//避免上一个定时任务没有跑完，下一个定时任务又开始

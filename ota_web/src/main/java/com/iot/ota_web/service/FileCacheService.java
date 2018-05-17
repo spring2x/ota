@@ -62,7 +62,8 @@ public class FileCacheService {
 			redisTemplate.opsForHash().put(key, "md5Code", md5Code);
 			redisTemplate.opsForHash().put(key, "sha1Code", sha1Code);
 			redisTemplate.opsForHash().put(key, "filePath", file.getAbsolutePath());
-			putFileToRedisCache(key, file, FILE_SPLIT_NUM_TO_REDIS);
+			redisTemplate.opsForHash().put(key, "fileSize", file.length());
+			//putFileToRedisCache(key, file, FILE_SPLIT_NUM_TO_REDIS);
 		} catch (Exception e) {
 			throw e;
 		}
